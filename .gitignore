@@ -1,0 +1,23 @@
+#Inspired by Tom Benedict's .gitignore
+
+
+# Ignore all at the root.
+/*
+
+
+# Except:
+!.gitignore
+!Resources
+!Project
+
+
+#Also ignore
+Project/DerivedData
+Resources/Cache
+Resources/Private
+*.sublime*
+userPreferences.*/
+
+
+# Ignore everywhere.
+__MACOSX
