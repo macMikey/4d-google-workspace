@@ -23,7 +23,7 @@ If (OB Is empty (cComms))
 End if
 ```
 
-## Using Comms Across Multiple Objects Simultaneously
+## [Using Comms Across Multiple Objects Simultaneously](#using-comms-across-multiple-objects-simultaneously)
 The *cGoogleComms* object is designed to both be independent of and/or the super class of the other google objects.  That is because it is possible to be working on one or multiple google docs/spreadsheets/etc. at the same time.
 The ***base case*** is simply to instantiate a single docs/spreadsheet/etc. object.  Then that object will inherit the properties and functions of *cGoogleComms* and do its thing.
 If you instead want to work on multiple docs/spreadsheets/etc. simultaneously, you can do that by sharing the authorization.
