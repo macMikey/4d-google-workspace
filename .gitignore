@@ -17,6 +17,9 @@ Resources/Cache
 Resources/Private
 *.sublime*
 userPreferences.*/
+Project/Sources/Classes/Private
+Project/Sources/Methods/Private
+Project/Trash
 
 
 # Ignore everywhere.

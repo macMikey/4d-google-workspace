@@ -1,4 +1,13 @@
 ﻿{
+	"(archive)": {},
+	"(Folder)": {},
+	"(old way)": {},
+	"class way": {
+		"classes": [
+			"cGoogleComms",
+			"cGoogleSpreadsheet"
+		]
+	},
 	"Default Classes": {},
 	"Default Folder": {
 		"groups": [
@@ -11,5 +20,11 @@
 	"Default Forms": {},
 	"Default Project Methods": {},
 	"Default Tables": {},
-	"trash": {}
+	"trash": {
+		"groups": [
+			"(archive)",
+			"(Folder)",
+			"(old way)"
+		]
+	}
 }
