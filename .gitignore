@@ -21,6 +21,7 @@ Resources/Private
 *.sublime*
 userPreferences.*/
 Project/Sources/Classes/Private
+_*.4dm
 Project/Sources/Methods/Private
 Project/Trash
 

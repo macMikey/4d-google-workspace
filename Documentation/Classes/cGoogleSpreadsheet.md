@@ -59,3 +59,6 @@ Everything in parentheses is description
 |_getSheetIDFromURL|url|X|Text|Required|Grabs the part of the url where the ID of the current sheet (tab) lives|
 |_getSpreadsheetIDFromURL|url|X|Text|Required|Grabs the part of the url where the current spreadsheet lives|
 |_queryRange|rangeString|-|Text|Null|builds a range query string|
+
+## References
+https://developers.google.com/sheets/api/reference/rest

@@ -12,7 +12,7 @@ Other classes extend this one **but** there should be at least one *cGoogleComms
 |Username|Text|X|Required|Username to act on behalf of|
 |Scopes|Text|X|Required|**Space-Delimited** scopes to use|
 |Key|Text|X|Required|The text of the API key granted by Google|
-|Connection Method|Text|-|**native**|Either **native** or **curl**, telling 4D which http code to use, depending on which you have installed in your database|
+|Connection Method|Text|**NOT IMPLEMENTED**|**native**|Either **native** or **curl**, telling 4D which http code to use, depending on which you have installed in your database|
 
 ## Constructor Example
 

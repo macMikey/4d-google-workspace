@@ -9,7 +9,7 @@ Class constructor  //(username:text, scopes:text, googleKey:text; networkLayer:t
 	This:C1470.auth.scopes:=$2
 	This:C1470.auth.googleKey:=JSON Parse:C1218($3)
 	This:C1470.auth.googleKey.asString:=$3  // so spreadsheets can extend this class and pass key the way other methods do.
-	This:C1470.connectionMethod:=$4
+	This:C1470.connectionMethod:="native"  // $4 //ONLY "NATIVE" IS IMPLEMENTED
 	  //</handle params>
 	
 	
@@ -19,7 +19,8 @@ Class constructor  //(username:text, scopes:text, googleKey:text; networkLayer:t
 	This:C1470.auth.access.token:=New object:C1471()
 	  //</initialize properties>
 	
-	  // ---------------------------------------------------------------------------------------------------------------
+	  // _______________________________________________________________________________________________________________
+	
 	
 Function _initializeConstants  // no params
 	
@@ -49,6 +50,7 @@ Function _initializeConstants  // no params
 	
 	  // ===============================================================================================================
 	
+	
 Function getAccess  //{forceRefresh:boolean}
 	  // all the access (important) stuff - timeouts, token, headers - so we can update all objects if an auth changes
 	  // do it indirectly so we can hide the properties and if we change the structure we don't break something
@@ -58,13 +60,14 @@ Function getAccess  //{forceRefresh:boolean}
 	This:C1470._getHeader($1)  //refresh header, if necessary
 	$0:=This:C1470.auth.access
 	
-	  // ---------------------------------------------------------------------------------------------------------------
+	  // _______________________________________________________________________________________________________________
+	
 	
 Function setAccess  // set all the access (important) properties - timeouts, token, headers - so we can update all objects if an auth changes
 	  // do it indirectly so we can hide the properties and if we change the structure we don't break something
 	This:C1470.auth.access:=$1
 	
-	  // ---------------------------------------------------------------------------------------------------------------
+	  // _______________________________________________________________________________________________________________
 	
 Function _getHeader  //{forceRefresh:boolean}
 	  // returns header object to be used on subsequent calls or null
@@ -133,12 +136,13 @@ Function _getHeader  //{forceRefresh:boolean}
 		End if   //status#200
 	End if   //(($now<=This.auth.access.expiresAt)
 	
-	  // ---------------------------------------------------------------------------------------------------------------
+	  // _______________________________________________________________________________________________________________
 	
 Function _http_get  //i.e. http get (url:text ; header:object)
 	  // returns an object with properties  status:text ; value:object
 	C_TEXT:C284($1)
 	C_OBJECT:C1216($2)
+	
 	
 	If (This:C1470.connectionMethod="native")
 		ARRAY TEXT:C222($aHeaderNames;1)
@@ -153,7 +157,7 @@ Function _http_get  //i.e. http get (url:text ; header:object)
 		$header:=$3.name+": "+$3.value
 	End if 
 	
-	  // ---------------------------------------------------------------------------------------------------------------
+	  // _______________________________________________________________________________________________________________
 	
 Function _http_post  //i.e. http post (url:text; body:text; header:object)
 	  // returns an object with properties  status:text ; value:object
@@ -173,7 +177,7 @@ Function _http_post  //i.e. http post (url:text; body:text; header:object)
 		$header:=$3.name+": "+$3.value
 	End if 
 	
-	  // ---------------------------------------------------------------------------------------------------------------
+	  // _______________________________________________________________________________________________________________
 	
 Function _Unix_Timestamp
 	C_LONGINT:C283($0;$time)
@@ -229,7 +233,7 @@ Function _Unix_Timestamp
 	
 	$0:=$time
 	
-	  // ---------------------------------------------------------------------------------------------------------------
+	  // _______________________________________________________________________________________________________________
 	
 Function _URL_Escape
 	C_TEXT:C284($1;$0;$escaped)
@@ -271,4 +275,4 @@ Function _URL_Escape
 	
 	$0:=$escaped
 	
-	  // ---------------------------------------------------------------------------------------------------------------
+	  // _______________________________________________________________________________________________________________
