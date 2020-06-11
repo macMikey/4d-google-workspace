@@ -14,11 +14,11 @@ Class constructor  //(username:text, scopes:text, googleKey:text; networkLayer:t
 	
 	
 	  //<initialize properties>
-	This:C1470.auth.access:=New object:C1471()
 	This:C1470.auth.access.expiresAt:=Current time:C178
 	This:C1470.auth.access.token:=New object:C1471()
 	  //</initialize properties>
 	
+	This:C1470._getHeader()  //initialize comms and get the token cleared
 	  // _______________________________________________________________________________________________________________
 	
 	
@@ -32,6 +32,7 @@ Function _initializeConstants  // no params
 	This:C1470.auth.oHead:=New object:C1471("alg";"RS256";"typ";"JWT")
 	This:C1470.auth.url:="https://oauth2.googleapis.com/token"
 	This:C1470.auth.bodyPrefix:="grant_type="+This:C1470._URL_Escape("urn:ietf:params:oauth:grant-type:jwt-bearer")+"&assertion="  //xxx
+	This:C1470.auth.access:=New object:C1471()
 	This:C1470.auth.access.header:=New object:C1471()
 	This:C1470.auth.access.header.name:="Authorization"
 	This:C1470.auth.access.header.value:=""  //gets assigned later.  this is just a placeholder

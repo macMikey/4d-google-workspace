@@ -29,18 +29,18 @@ Function developerMetadata_search
 	
 	  // _______________________________________________________________________________________________________________
 	
-Function _SS_batchUpdate
+Function _ss_batchUpdate
 	  //POST/v4/spreadsheets/{spreadsheetId}:batchUpdate
 	  //Applies one or more updates to the spreadsheet.
 	
 	  // _______________________________________________________________________________________________________________
 	
-Function _SS_create
+Function _ss_create
 	  //POST/v4/spreadsheets
 	  //Creates a spreadsheet, returning the newly created spreadsheet.
 	  // _______________________________________________________________________________________________________________
 	
-Function _SS_get  // {(rangeString:text , includeGridData:boolean)}
+Function _ss_get  // {(rangeString:text , includeGridData:boolean)}
 	  // loads all spreadsheet data
 	  // optional params:
 	  // rangeString is an A1-formatted range, e.g. "A1", "A1:B2", "A1:B2,C1"
@@ -84,66 +84,66 @@ Function _SS_get  // {(rangeString:text , includeGridData:boolean)}
 	
 	  // _______________________________________________________________________________________________________________
 	
-Function _SS_getByDataFilter
+Function _ss_getByDataFilter
 	  //POST/v4/spreadsheets/{spreadsheetId}:getByDataFilter
 	  //Returns the spreadsheet at the given ID.
 	
 	  // _______________________________________________________________________________________________________________
 	
-Function _SS_values_append
+Function _ss_values_append
 	  //POST/v4/spreadsheets/{spreadsheetId}/values/{range}:append
 	  //Appends values to a spreadsheet.
 	
 	  // _______________________________________________________________________________________________________________
 	
-Function _SS_values_batchClear
+Function _ss_values_batchClear
 	  // POST/v4/spreadsheets/{spreadsheetId}/values:batchClear
 	  //Clears one or more ranges of values from a spreadsheet.
 	
 	  // _______________________________________________________________________________________________________________
 	
-Function _SS_values_batchClearByDataFilter
+Function _ss_values_batchClearByDataFilter
 	  //POST/v4/spreadsheets/{spreadsheetId}/values:batchClearByDataFilter
 	  //Clears one or more ranges of values from a spreadsheet.
 	
 	  // _______________________________________________________________________________________________________________
 	
-Function _SS_values_batchGet
+Function _ss_values_batchGet
 	  // GET/v4/spreadsheets/{spreadsheetId}/values:batchGet
 	  //Returns one or more ranges of values from a spreadsheet.
 	
 	  // _______________________________________________________________________________________________________________
 	
-Function _SS_values_batchGetByDataFilter
+Function _ss_values_batchGetByDataFilter
 	  //POST/v4/spreadsheets/{spreadsheetId}/values:batchGetByDataFilter
 	  //Returns one or more ranges of values that match the specified data filters.
 	
 	  // _______________________________________________________________________________________________________________
 	
-Function _SS_values_batchUpdate
+Function _ss_values_batchUpdate
 	  //POST/v4/spreadsheets/{spreadsheetId}/values:batchUpdate
 	  //Sets values in one or more ranges of a spreadsheet.
 	
 	  // _______________________________________________________________________________________________________________
 	
-Function _SS_values_batchUpdateByDataFilter
+Function _ss_values_batchUpdateByDataFilter
 	  //POST/v4/spreadsheets/{spreadsheetId}/values:batchUpdateByDataFilter
 	  //Sets values in one or more ranges of a spreadsheet.
 	
 	  // _______________________________________________________________________________________________________________
 	
-Function _SS_values_clear
+Function _ss_values_clear
 	  //POST/v4/spreadsheets/{spreadsheetId}/values/{range}:clear
 	  //Clears values from a spreadsheet.
 	
 	  // _______________________________________________________________________________________________________________
 	
-Function _SS_values_get  //(range:TEXT ; {valueRenderOption:TEXT ; dateTimeRenderOption:TEXT} )
+Function _ss_values_get  //(range:TEXT ; {valueRenderOption:TEXT ; dateTimeRenderOption:TEXT} )
 	  // Returns a range of values from a spreadsheet. The caller must specify the spreadsheet ID and a range.
 	
 	  //<handle params>
 	C_TEXT:C284($1;$2;$3)
-	$queryString:=This:C1470.spreadsheetID+"/values/"+This:C1470.queryRange($1)  //e.g. 28d738fdhd3v83a/values/Sheet1!A1:B2
+	$queryString:=This:C1470._queryRange($1)  //e.g. 28d738fdhd3v83a/values/Sheet1!A1:B2
 	
 	$appendSymbol:=""
 	$valueRenderOptionString:=""
@@ -166,7 +166,7 @@ Function _SS_values_get  //(range:TEXT ; {valueRenderOption:TEXT ; dateTimeRende
 	
 	$queryString:=$queryString+$valueRenderOptionString+$appendSymbol+$dateTimeRenderOption
 	
-	$url:=This:C1470.endpoint+This:C1470.spreadsheetID+$queryString
+	$url:=This:C1470.endpoint+This:C1470.spreadsheetID+"/values/"+$queryString
 	C_OBJECT:C1216($oResult)
 	$oResult:=Super:C1706._http_get($url;This:C1470.auth.access.header)
 	This:C1470.status:=$oResult.status
@@ -180,7 +180,7 @@ Function _SS_values_get  //(range:TEXT ; {valueRenderOption:TEXT ; dateTimeRende
 	
 	  // _______________________________________________________________________________________________________________
 	
-Function _SS_values_update
+Function _ss_values_update
 	  //PUT/v4/spreadsheets/{spreadsheetId}/values/{range}
 	  //Sets values in a range of a spreadsheet.
 	
@@ -219,8 +219,8 @@ Function _queryRange  //(rangeString:text)
 	C_TEXT:C284($1;$0)
 	$0:=""
 	If ($1#"")
-		$0:="ranges="+$1
-		$0=Replace string:C233($0;",";"&ranges=")  // A1:B1,C1 becomes ranges=A1:B1&ranges=C1
+		$0:=$1
+		$0:=Replace string:C233($0;",";"&ranges=")  // A1:B1,C1 becomes ranges=A1:B1&ranges=C1
 		$0:=Replace string:C233($0;" ";"")
 	End if 
 	

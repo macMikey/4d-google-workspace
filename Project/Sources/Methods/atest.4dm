@@ -16,7 +16,8 @@ End if
 
 C_OBJECT:C1216(<>s)
 If (OB Is empty:C1297(<>s))
-	<>s:=cs:C1710.cGoogleSpreadsheet.new(<>a;$testSheet)
-	<>s.setAccess(<>a.getAccess())  //copy access from a to s.  wouldn't it be cool to do this with pointers, like pass a pointer to the comms object and use that every time?
+	<>s:=cs:C1710.cGoogleSpreadsheet.new(<>a;$testURL)
+	  //<>s.setAccess(<>a.getAccess())  //copy access from a to s.  wouldn't it be cool to do this with pointers, like pass a pointer to the comms object and use that every time?
 End if 
-$spreadsheet:=<>s.getSpreadsheet()
+C_OBJECT:C1216($values)
+$values:=<>s._ss_values_get("Sheet1!A1:B2")
