@@ -29,15 +29,6 @@ Passing the authorization from a cGoogleComms object to a spreadsheet looks like
 ```
 Then the spreadsheet is ready to go.
 
-## API
-
-
-|Name|Parameter Name|Required?|Parameter Type|Default|Description|
-|--|--|--|--|--|--|
-|getSpreadsheet|-|-|-|-|Returns an object with the spreadsheet data|
-||rangeString|-|Text|Null|A range, in A1 format.  Multiple ranges can be separated with commas|
-||includeGridData|-|Boolean|False|Specify whether to include grid data|
-
 
 ## Internal Structure
 #### None of the information in this section is necessary to use the class.  This is for developers who may want to modify the class and submit a PR to the repo.
@@ -52,13 +43,73 @@ Everything in parentheses is description
 	sheetData (the object returned from google)
 ```
 
-### Internal API
+## Internal API
+### None of the information in this section is necessary to use the class.  This is for developers who may want to modify the class and submit a PR to the repo.
+**Assume that all properties (and at least some functions) will eventually be made private (not available to be used outside of the class).  Any function that begins with underscore**  ***and all properties***  **should be considered private.**
 
-|Name|Parameter Name|Required?|Parameter Type|Default|Description|
-|--|--|--|--|--|--|
-|_getSheetIDFromURL|url|X|Text|Required|Grabs the part of the url where the ID of the current sheet (tab) lives|
-|_getSpreadsheetIDFromURL|url|X|Text|Required|Grabs the part of the url where the current spreadsheet lives|
-|_queryRange|rangeString|-|Text|Null|builds a range query string|
+The Internal API lines up exactly with v4 of [Google's REST API](https://developers.google.com/sheets/api/reference/rest)
+
+
+### \_getSheetIDFromURL (url:TEXT)
+Grabs the part of the url where the ID of the current sheet (tab) lives
+
+###\_getSpreadsheetIDFromURL (url:TEXT)
+Grabs the part of the url where the current spreadsheet lives
+
+### \_queryRange (range:TEXT)
+Builds a range query string in A1 format
+
+### \_ss_get({range:TEXT ; includeGridData:Boolean})
+Returns the spreadsheet at the given ID. The caller must specify the spreadsheet ID.
+By default, data within grids will not be returned. You can include grid data one of two ways:
+	1. Specify a field mask listing your desired fields using the fields URL parameter in HTTP
+	2. Set the includeGridData URL parameter to true. If a field mask is set, the includeGridData parameter is ignored
+For large spreadsheets, it is recommended to retrieve only the specific fields of the spreadsheet that you want.
+To retrieve only subsets of the spreadsheet, use the ranges URL parameter. Multiple ranges can be specified. Limiting the range will return only the portions of the spreadsheet that intersect the requested ranges. Ranges are specified using A1 notation.
+
+|Parameter Name|Required?|Parameter Type|Default|Description|
+|--|--|--|--|--|
+|range|-|Text|Null|A range, in A1 format.  Multiple ranges can be separated with commas|
+|includeGridData|-|Boolean|False|Specify whether to include grid data|
+
+#### Examples
+```4d
+	$oSomeObject:=s.spreadsheet_get()
+```
+```4d
+	$oSomeObject:=s.spreadsheet_get("Sheet1!A1:B2, Sheet2!B:B")
+```
+```4d
+	$oSomeObject:=s.spreadsheet_get(;True)
+```
+
+#### Reference
+[Spreadsheets.get](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/get#body.QUERY_PARAMETERS.ranges)
+
+
+### \_ss_values_get ({range:TEXT ; valueRenderOption:TEXT ; dateTimeRenderOption:TEXT})
+Returns a range of values from a spreadsheet. The caller must specify the spreadsheet ID and a range.
+
+|Parameter Name|Required?|Parameter Type|Default|Description|
+|--|--|--|--|--|
+|rangeString|Yes|Text|Required|A range, in A1 format.  Only a single range may be entered.|
+|majorDimension|-|Text|*DIMENSION_UNSPECIFIED*|*DIMENSION_UNSPECIFIED* - The default value, do not use.<br>*ROWS* - Operates on the rows of a sheet.<br>*COLUMNS* - Operates on the columns of a sheet *(as if it is transposed)*.|
+|valueRenderOption|-|Text|*FORMATTED_VALUE*|*FORMATTED_VALUE* - Values will be calculated & formatted in the reply according to the cell's formatting. Formatting is based on the spreadsheet's locale, not the requesting user's locale. For example, if A1 is 1.23 and A2 is =A1 and formatted as currency, then A2 would return "$1.23".<br>*UNFORMATTED_VALUE* - Values will be calculated, but not formatted in the reply. For example, if A1 is 1.23 and A2 is =A1 and formatted as currency, then A2 would return the number 1.23.<br>*FORMULA* - Values will not be calculated. The reply will include the formulas. For example, if A1 is 1.23 and A2 is =A1 and formatted as currency, then A2 would return "=A1".|
+|dateTimeRenderOption|-|Text|*SERIAL_NUMBER*| Ignored if *valueRenderOption* is *FORMATTED_VALUE*.<br>*SERIAL_NUMBER* - Instructs date, time, datetime, and duration fields to be output as doubles in "serial number" format, as popularized by Lotus 1-2-3. The whole number portion of the value (left of the decimal) counts the days since December 30th 1899. The fractional portion (right of the decimal) counts the time as a fraction of the day. For example, January 1st 1900 at noon would be 2.5, 2 because it's 2 days after December 30st 1899, and .5 because noon is half a day. February 1st 1900 at 3pm would be 33.625. This correctly treats the year 1900 as not a leap year.<br>*FORMATTED_STRING* - Instructs date, time, datetime, and duration fields to be output as strings in their given number format (which is dependent on the spreadsheet locale).|
+
+
+### Examples
+```4d
+	$oValues:=s.spreadsheet_values_get("Sheet1!A1:B4")
+```
+```4d
+	$oValues:=s.spreadsheet_get("Sheet1!A1:B2";"UNFORMATTED_VALUE";"FORMATTED_STRING")
+```
+
+#### Reference
+[Spreadsheet.values.get](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/get)
+
+
 
 ## References
 https://developers.google.com/sheets/api/reference/rest

@@ -61,7 +61,7 @@ End if
 |Name|Parameter Name|Required?|Parameter Type|Default|Description|
 |--|--|--|--|--|--|
 |getAccess|forceRefresh|-|Boolean|False|Get the current access object, which includes all the important information - timesouts, token, headers.  This can be passed and assigned as-is to other google objects using the *setAccess()* function.  Use *forceRefresh* if you get a token expired error from google.|
-|setAccess()|-|-|-|-|Sets the access object properties obtained from *getAccess()*|
+|setAccess()|||||Sets the access object properties obtained from *getAccess()*|
 
 ## Internal Structure
 #### None of the information in this section is necessary to use the class.  This is for developers who may want to modify the class and submit a PR to the repo.
@@ -107,17 +107,38 @@ Everything in parentheses is description
 	status:				the http status of the last call using the object
 ```
 
-### Internal API
+## Internal API
+#### None of the information in this section is necessary to use the class.  This is for developers who may want to modify the class and submit a PR to the repo.
+**Assume that all properties (and at least some functions) will eventually be made private (not available to be used outside of the class).  Any function that begins with underscore**  ***and all properties***  **should be considered private.**
 
-|Name|Parameter Name|Required?|Parameter Type|Default|Description|
-|--|--|--|--|--|--|
-|_initializeConstants|-|-|-|-|I put all the constants/literals in one place in case we ever have to change them|
-|_http_get|||||executes an http get using developer's choice of 4d native http or libcurl|
-||url|X|Text|Required|URL to get|
-||header|X|Object|Required||
-|_http_post|||||executes an http post using developer's choice of 4d native http or libcurl|
-||url|X|Text|Required|URL to post to|
-||body|X|Text|Required||
-||header|X|Object|Required|header object|
-|_Unix_Timestamp|-|-|-|-|Returns epoch seconds|
-|_URL_Escape|stringToEscape|X|Text|Required|Escapes a string to send to the server|
+### \_initializeConstants ()
+I put all the constants/literals in one place in case we ever have to change them
+
+### \_http_get (url:TEXT ; header:TEXT)
+Executes an http get using developer's choice of 4d native http or libcurl
+
+|Parameter Name|Required?|Parameter Type|Default|Description|
+|--|--|--|--|--|
+|url|X|Text|Required|URL to get|
+|header|X|Object|Required||
+
+### \_http_post(url:TEXT ; body:TEXT ; header:OBJECT)
+Executes an http post using developer's choice of 4d native http or libcurl ***libcurl not implemented, yet***
+
+|Parameter Name|Required?|Parameter Type|Default|Description|
+|--|--|--|--|--|
+|url|X|Text|Required|URL to post to|
+|body|X|Text|Required||
+|header|X|Object|Required|header object|
+
+### \_Unix_Timestamp()
+Returns epoch seconds
+
+#### Reference
+[Keisuke Miyako's "4D-tips-google-service-account" : *Unix_timestamp()*](https://github.com/miyako/4d-tips-google-service-account/blob/master/Unix_Timestamp.txt)
+
+### \_URL_Escape(stringToEscape: TEXT)
+Escapes a string to insert into a url/header
+
+#### Reference
+[Keisuke Miyako's "4D-tips-google-service-account" : *URL_Escape()*](https://github.com/miyako/4d-tips-google-service-account/blob/master/URL_Escape.txt)

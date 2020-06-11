@@ -1,7 +1,7 @@
   // handles all comms with google.  Should be instantiated as a process object and therefore shared b/c tokens will periodically expire
 
 Class constructor  //(username:text, scopes:text, googleKey:text; networkLayer:text)
-	$ignore:=This:C1470._initializeConstants()
+	This:C1470._initializeConstants()
 	
 	  //<handle params>
 	C_TEXT:C284($1;$2;$3;$4)
