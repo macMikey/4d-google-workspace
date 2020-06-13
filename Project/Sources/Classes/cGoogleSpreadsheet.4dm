@@ -43,41 +43,29 @@ Function _ss_create
 Function _ss_get  // {(rangeString:text , includeGridData:boolean)}
 	  // loads all spreadsheet data
 	  // optional params:
-	  // rangeString is an A1-formatted range, e.g. "A1", "A1:B2", "A1:B2,C1"
-	  // includeGridData is a boolean
 	
 	  //<handle params>
 	C_TEXT:C284($1)
 	C_BOOLEAN:C305($2)
-	$rangeString:=""
-	$includeGridData:=""
-	$queryString:=""
-	$appendSymbol:=""  // only append with ampersand if both params are defined
 	
-	If (Count parameters:C259>0)
-		$queryString:="?"
-		$ranges:=This:C1470._queryRange($1)
-		
-		If ($2#"")
-			$includeGridData:="includeGridData="+lower(String:C10($2))
-		End if 
-		
-		If (($ranges#"") & ($includeGridData#""))
-			$appendSymbol:="&"
-		End if 
-		
-		$queryString:=$queryString+$ranges+$appendSymbol+$includeGridData
-	End if   // count parameters > 0
+	$includeGridData:=False:C215
+	If (Count parameters:C259#2)
+		$includeGridData:=False:C215
+	End if 
+	
+	$queryString:="?"+\
+		This:C1470._queryRange($1)+"&"+\
+		"includeGridData="+Lowercase:C14(String:C10($includeGridData))
 	  //</handle params>
 	
 	$url:=This:C1470.endpoint+This:C1470.spreadsheetID+$queryString
 	C_OBJECT:C1216($oResult)
-	$oResult:=Super:C1706._http_get($url;This:C1470.auth.access.header)
+	$oResult:=Super:C1706._http(HTTP GET method:K71:1;$url;"";This:C1470.auth.access.header)
 	This:C1470.status:=$oResult.status
 	This:C1470.sheetData:=$oResult.value
 	
 	If (This:C1470.status#200)
-		$0:=Null:C1517  //debugx  $0:=this.null
+		$0:=Null:C1517
 	Else   //fail
 		$0:=This:C1470.sheetData
 	End if   //$status#200
@@ -138,52 +126,106 @@ Function _ss_values_clear
 	
 	  // _______________________________________________________________________________________________________________
 	
-Function _ss_values_get  //(range:TEXT ; {valueRenderOption:TEXT ; dateTimeRenderOption:TEXT} )
+Function _ss_values_get  //(range:TEXT {; majorDimension: Text ; valueRenderOption:Text ; dateTimeRenderOption:Text} )
 	  // Returns a range of values from a spreadsheet. The caller must specify the spreadsheet ID and a range.
 	
 	  //<handle params>
-	C_TEXT:C284($1;$2;$3)
+	C_TEXT:C284($1;$2;$3;$4)
 	$queryString:=This:C1470._queryRange($1)  //e.g. 28d738fdhd3v83a/values/Sheet1!A1:B2
 	
 	$appendSymbol:=""
-	$valueRenderOptionString:=""
-	$dateTimeRenderOption:=""
-	If (Count parameters:C259>1)
-		$queryString:=$queryString+"?"
-		
-		If ($2#"")
-			$valueRenderOptionString:="valueRenderOption="+$2
-		End if 
-		
-		If ($3#"")
-			$dateTimeRenderOption:="dateTimeRenderOption="+$3
-		End if 
-		
-		If ((#2#"") & ($3#""))
-			$appendSymbol:="&"
-		End if 
+	$valueRenderOption:=""
+	
+	$majorDimension:="DIMENSION_UNSPECIFIED"
+	If (Count parameters:C259>=3)
+		$valueRenderOption:=$3
 	End if 
 	
-	$queryString:=$queryString+$valueRenderOptionString+$appendSymbol+$dateTimeRenderOption
+	$valueRenderOption:="FORMATTED_VALUE"
+	If (Count parameters:C259>=4)
+		$valueRenderOption:=$4
+	End if 
+	
+	$dateTimeRenderOption:="SERIAL_NUMBER"
+	If (Count parameters:C259>=5)
+		$dateTimeRenderOption:=$5
+	End if 
+	
+	$queryString:=$queryString+"?"+\
+		"majorDimension="+$majorDimension+"&"+\
+		"valueRenderOption="+$valueRenderOption+"&"+\
+		"dateTimeRenderOption="+$dateTimeRenderOption
 	
 	$url:=This:C1470.endpoint+This:C1470.spreadsheetID+"/values/"+$queryString
 	C_OBJECT:C1216($oResult)
-	$oResult:=Super:C1706._http_get($url;This:C1470.auth.access.header)
+	$oResult:=Super:C1706._http(HTTP GET method:K71:1;$url;"";This:C1470.auth.access.header)
 	This:C1470.status:=$oResult.status
 	This:C1470.sheetData:=$oResult.value
 	
 	If (This:C1470.status#200)
-		$0:=Null:C1517  //debugx  $0:=this.null
+		$0:=Null:C1517
 	Else   //fail
 		$0:=This:C1470.sheetData
 	End if   //$status#200
 	
 	  // _______________________________________________________________________________________________________________
 	
-Function _ss_values_update
-	  //PUT/v4/spreadsheets/{spreadsheetId}/values/{range}
+Function _ss_values_update  //(range:TEXT ; valuesObject: Object ; valueInputOption:Text {; includeValuesInResponse: Boolean ; responseValueRenderOption: Text ; responseDateTimeRenderOption:Text})
+	  // PUT https://sheets.googleapis.com/v4/spreadsheets/{spreadsheetId}/values/{range}
 	  //Sets values in a range of a spreadsheet.
 	
+	
+	  //<handle params>
+	C_TEXT:C284($1)
+	C_OBJECT:C1216($2)
+	C_TEXT:C284($3)
+	C_BOOLEAN:C305($4)
+	C_TEXT:C284($5)
+	C_TEXT:C284($6)
+	
+	  //<mandatory parameters>
+	$rangeString:=This:C1470._queryRange($1)
+	$queryString:="?valueInputOption="+$3  // going to have at least one query parameter, the valuesInputOption
+	  //</mandatory parameters>
+	
+	
+	$appendSymbol:=""  // only append with ampersand if both params are defined
+	
+	
+	$includeValuesInResponse:="false"
+	If (Count parameters:C259>=4)
+		$includeValuesInResponse:=Lowercase:C14(String:C10($4))
+	End if 
+	
+	$responseValueRenderOption:="FORMATTED_VALUE"
+	If (Count parameters:C259>=5)
+		$includeValuesInResponse:=$5
+	End if 
+	
+	$responseDateTimeRenderOption:="SERIAL_NUMBER"
+	If (Count parameters:C259>=6)
+		$responseDateTimeRenderOption:=$6
+	End if 
+	
+	
+	$queryString:=$queryString+\
+		"&includeValuesInResponse="+$includeValuesInResponse+"&"+\
+		"&responseValueRenderOption="+$responseValueRenderOption+"&"+\
+		"&responseDateTimeRenderOption="+$responseDateTimeRenderOption
+	
+	  //</handle params>
+	
+	$url:=This:C1470.endpoint+This:C1470.spreadsheetID+"/values/"+$rangeString+$queryString
+	C_OBJECT:C1216($oResult)
+	$oResult:=Super:C1706._http(HTTP PUT method:K71:6;$url;JSON Stringify:C1217($2);This:C1470.auth.access.header)
+	This:C1470.status:=$oResult.status
+	This:C1470.sheetData:=$oResult.value
+	
+	If (This:C1470.status#200)
+		$0:=Null:C1517  //debugx  $0:=this.null
+	Else   //fail‘
+		$0:=This:C1470.sheetData
+	End if   //$status#200
 	
 	  // ===============================================================================================================
 	
@@ -213,13 +255,14 @@ Function _getSSIDFromURL  //url:text
 	
 Function _queryRange  //(rangeString:text)
 	  //turns a range string into a query-capable string
-	  // 1. adds "ranges=" to the front
+	  // 1. replaces colons with %3A
 	  // 2. removes all spaces
 	  // 3. handles comma-separated compound ranges
 	C_TEXT:C284($1;$0)
 	$0:=""
 	If ($1#"")
 		$0:=$1
+		$0:=Replace string:C233($0;":";"%3A")  //url encode
 		$0:=Replace string:C233($0;",";"&ranges=")  // A1:B1,C1 becomes ranges=A1:B1&ranges=C1
 		$0:=Replace string:C233($0;" ";"")
 	End if 

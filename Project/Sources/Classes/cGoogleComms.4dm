@@ -1,6 +1,6 @@
   // handles all comms with google.  Should be instantiated as a process object and therefore shared b/c tokens will periodically expire
 
-Class constructor  //(username:text, scopes:text, googleKey:text; networkLayer:text)
+Class constructor  //(username:text, scopes:text, googleKey:text; connectionMethod:text)
 	This:C1470._initializeConstants()
 	
 	  //<handle params>
@@ -18,13 +18,12 @@ Class constructor  //(username:text, scopes:text, googleKey:text; networkLayer:t
 	This:C1470.auth.access.token:=New object:C1471()
 	  //</initialize properties>
 	
-	This:C1470._getHeader()  //initialize comms and get the token cleared
+	  //debugx this seems counterproductive if we're in a sheet and we redo this.  This._getHeader()  //initialize comms and get the token cleared
 	  // _______________________________________________________________________________________________________________
 	
 	
 Function _initializeConstants  // no params
 	
-	  //debugxThis.null:=New object()  //null object, return for errors where an object is returned
 	
 	  //<auth>
 	This:C1470.auth:=New object:C1471()
@@ -117,7 +116,7 @@ Function _getHeader  //{forceRefresh:boolean}
 		
 		  //<get the access token>
 		C_OBJECT:C1216($oResult)
-		$oResult:=This:C1470._http_post(This:C1470.auth.url;$body;This:C1470.auth.jwt.header)
+		$oResult:=This:C1470._http(HTTP POST method:K71:2;This:C1470.auth.url;$body;This:C1470.auth.jwt.header)
 		This:C1470.status:=$oResult.status
 		This:C1470.auth.access.token:=$oResult.value
 		  //</get the access token>
@@ -130,7 +129,7 @@ Function _getHeader  //{forceRefresh:boolean}
 		C_OBJECT:C1216($0)
 		
 		If (This:C1470.status#200)
-			$0:=Null:C1517  // debugx $0:=This.null
+			$0:=Null:C1517
 		Else   //$status=200
 			This:C1470.auth.access.expiresAt:=$now+(This:C1470.auth.access.token.expires_in*1000)  //get to milliseconds to compare to system clock
 			$0:=This:C1470.auth.access.header  //return the entire object
@@ -139,43 +138,23 @@ Function _getHeader  //{forceRefresh:boolean}
 	
 	  // _______________________________________________________________________________________________________________
 	
-Function _http_get  //i.e. http get (url:text ; header:object)
-	  // returns an object with properties  status:text ; value:object
-	C_TEXT:C284($1)
-	C_OBJECT:C1216($2)
-	
-	
-	If (This:C1470.connectionMethod="native")
-		ARRAY TEXT:C222($aHeaderNames;1)
-		ARRAY TEXT:C222($aHeaderValues;1)
-		$aHeaderNames{1}:=$2.name
-		$aHeaderValues{1}:=$2.value
-		C_OBJECT:C1216($0;$oReturnValue)
-		$0:=New object:C1471()
-		$0.status:=HTTP Request:C1158(HTTP GET method:K71:1;$1;"";$oReturnValue;$aHeaderNames;$aHeaderValues)
-		$0.value:=$oReturnValue
-	Else   //"curl"
-		$header:=$3.name+": "+$3.value
-	End if 
-	
-	  // _______________________________________________________________________________________________________________
-	
-Function _http_post  //i.e. http post (url:text; body:text; header:object)
-	  // returns an object with properties  status:text ; value:object
-	C_TEXT:C284($1;$2)
-	C_OBJECT:C1216($3)
+Function _http  // (http_method:TEXT ; url:TEXT; body:TEXT; header:object)
+	  // returns an object with properties  status:TEXT ; value:TEXT
+	C_TEXT:C284($1;$2;$3)
+	C_OBJECT:C1216($4)
 	
 	If (This:C1470.connectionMethod="native")
 		ARRAY TEXT:C222($aHeaderNames;1)
 		ARRAY TEXT:C222($aHeaderValues;1)
-		$aHeaderNames{1}:=$3.name
-		$aHeaderValues{1}:=$3.value
+		$aHeaderNames{1}:=$4.name
+		$aHeaderValues{1}:=$4.value
 		C_OBJECT:C1216($0;$oReturnValue)
 		$0:=New object:C1471()
-		$0.status:=HTTP Request:C1158(HTTP POST method:K71:2;$1;$2;$oReturnValue;$aHeaderNames;$aHeaderValues)
+		$0.status:=HTTP Request:C1158($1;$2;$3;$oReturnValue;$aHeaderNames;$aHeaderValues)
 		$0.value:=$oReturnValue
-	Else   //"curl"
-		$header:=$3.name+": "+$3.value
+	Else   //"curl" // not implemented yet
+		$header:=$4.name+": "+$4.value
+		$0:=Null:C1517
 	End if 
 	
 	  // _______________________________________________________________________________________________________________
