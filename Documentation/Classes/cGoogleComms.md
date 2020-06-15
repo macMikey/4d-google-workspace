@@ -58,10 +58,25 @@ End if
 
 ## API
 
-|Name|Parameter Name|Required?|Parameter Type|Default|Description|
-|--|--|--|--|--|--|
-|getAccess|forceRefresh|-|Boolean|False|Get the current access object, which includes all the important information - timesouts, token, headers.  This can be passed and assigned as-is to other google objects using the *setAccess()* function.  Use *forceRefresh* if you get a token expired error from google.|
-|setAccess()|||||Sets the access object properties obtained from *getAccess()*|
+### getAccess  ( {forceRefresh : Boolean} ) -> object
+Returns an object containing the authorization token information/header/timeouts.  This can be passed and assigned as-is to other google objects using the *setAccess()* function.  If the token has expired *or if **forceRefresh** is **true** then the function will refresh the token and the header with google*.
+
+|Parameter Name|Required?|Parameter Type|Default|Description|
+|--|--|--|--|--|
+|forceRefresh|No|Boolean|False|Whether to force refresh even if the token has not expired (e.g. when an authorization error is returned by google|
+
+### setAccess  ( {accessObject : object} ) 
+Sets the access object properties obtained from *getAccess()*.  Used with an object such as a spreadsheet.
+
+#### Example:
+Assume, for this example, that a google comms object called *<>a* exists already, and now we are going to create the spreadsheet.
+
+```4d
+$access:=getAccess (<>a)
+$ss:=cs.cGoogleSpreadsheet.new(<>a;$spreadsheetURL)
+$ss.setAccess($access)
+```
+
 
 ## Internal Structure
 #### None of the information in this section is necessary to use the class.  This is for developers who may want to modify the class and submit a PR to the repo.
@@ -114,22 +129,15 @@ Everything in parentheses is description
 ### \_initializeConstants ()
 I put all the constants/literals in one place in case we ever have to change them
 
-### \_http_get (url:TEXT ; header:TEXT)
-Executes an http get using developer's choice of 4d native http or libcurl
+### \_http ( httpMethod:longint ; url:TEXT ; body: text header:object)
+Executes an http call and returns an object containing the server's response and the status returned from the server.  The idea is to enable support for libCurl, ntk, or native 4D http calls by wrapping all of it.
 
 |Parameter Name|Required?|Parameter Type|Default|Description|
 |--|--|--|--|--|
-|url|X|Text|Required|URL to get|
-|header|X|Object|Required||
-
-### \_http_post(url:TEXT ; body:TEXT ; header:OBJECT)
-Executes an http post using developer's choice of 4d native http or libcurl ***libcurl not implemented, yet***
-
-|Parameter Name|Required?|Parameter Type|Default|Description|
-|--|--|--|--|--|
-|url|X|Text|Required|URL to post to|
-|body|X|Text|Required||
-|header|X|Object|Required|header object|
+|httpMethod|X|Longint|Required|One of 4D's *http* constants, e.g.<br>*HTTP DELETE method*<br>*HTTP GET method*<br>*HTTP HEAD method*<br>*HTTP OPTIONS method*<br>*HTTP POST method*<br>*HTTP PUT method*<br>*HTTP TRACE method*|
+|url|X|Text|Required|URL to use|
+|body|No|Text|(empty)|The body of the request.|
+|header|X|Object|Required|The *auth.access.header* object obtained from *getAccess()* from a *cGoogleComms* object|
 
 ### \_Unix_Timestamp()
 Returns epoch seconds
