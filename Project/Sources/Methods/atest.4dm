@@ -12,21 +12,18 @@ $testURL:=getPrivateData ("testsheet.txt")
 
 
 
-  //<initialize google comms>
+  //<initialize google auth
 C_OBJECT:C1216(<>a)  //define interprocess b/c otherwise doesn't survive exiting the execution (IKR?)
 If (OB Is empty:C1297(<>a))
-	<>a:=cs:C1710.cGoogleComms.new($username;$scopes;$key;"native")  //"native" isn't implemented, yet, though.
+	<>a:=cs:C1710.cGoogleAuth.new($username;$scopes;$key;"native")  //"native" isn't implemented, yet, though.
 End if 
-
-$access:=<>a.getAccess()  // to copy to the ss temporarily until we get a better way figured out.
-  //</initialize google comms>
+  //</initialize google auth
 
 
   //<setup a spreadsheet>
 C_OBJECT:C1216($s)
 $s:=Null:C1517
 $s:=cs:C1710.cGoogleSpreadsheet.new(<>a;$testURL)
-$s.setAccess($access)
   //</setup a spreadsheet>
 
 
