@@ -1,6 +1,5 @@
-  //main sheet/worksheet
-
 Class extends cGoogleComms
+
 
 Class constructor  // oGoogleAuth:object ; spreadsheet_url:text
 	

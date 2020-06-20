@@ -27,11 +27,10 @@ $s:=cs:C1710.cGoogleSpreadsheet.new(<>a;$testURL)
   //</setup a spreadsheet>
 
 
-  //<get everything for a spreadsheet>
-C_OBJECT:C1216($spreadsheetData)
-$spreadsheetData:=$s._ss_get
-  //</get everything for a spreadsheet>
-
+If (False:C215)  //<get everything for a spreadsheet>
+	C_OBJECT:C1216($spreadsheetData)
+	$spreadsheetData:=$s._ss_get
+End if   //</get everything for a spreadsheet>
 
 
 C_OBJECT:C1216($values)
@@ -48,5 +47,5 @@ For ($i;0;($values.values.length-1))
 End for 
 
 C_OBJECT:C1216($result)
-$result:=$s._ss_values_update($range;$values;"RAW")
+$result:=$s._ss_values_update($range;$values;"USER_ENTERED")
   //</in all occupied cells, replace contents with a sequential number>

@@ -13,7 +13,7 @@ Handles all the comms with google.  This is intended to be a private library for
 
 ```4d
 C_OBJECT(oComms)
-If (OB Is empty (cComms))
+If (OB Is empty (oComms))
 	oComms:=cs.cGoogleComms.new("native")
 End if
 ```
@@ -27,7 +27,7 @@ Executes an http call and returns an object containing the server's response and
 
 |Parameter Name|Required?|Parameter Type|Default|Description|
 |--|--|--|--|--|
-|httpMethod|X|Longint|Required|One of 4D's *http* constants, e.g.<br>*HTTP DELETE method*<br>*HTTP GET method*<br>*HTTP HEAD method*<br>*HTTP OPTIONS method*<br>*HTTP POST method*<br>*HTTP PUT method*<br>*HTTP TRACE method*|
-|url|X|Text|Required|URL to use|
+|httpMethod|Yes|String|Required|One of 4D's *http* constants, e.g.<br>*HTTP DELETE method*<br>*HTTP GET method*<br>*HTTP HEAD method*<br>*HTTP OPTIONS method*<br>*HTTP POST method*<br>*HTTP PUT method*<br>*HTTP TRACE method*|
+|url|Yes|Text|Required|URL to use|
 |body|No|Text|(empty)|The body of the request.|
-|header|X|Object|Required|The *auth.access.header* object obtained from *getAccess()* from a *cGoogleComms* object|
+|header|Yes|Object|Required|The *auth.access.header* object obtained from *getAccess()* from a *cGoogleComms* object|

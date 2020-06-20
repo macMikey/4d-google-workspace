@@ -35,7 +35,6 @@ Class constructor  //(username:text, scopes:text, googleKey:text; connectionMeth
 	This:C1470.username:=$1
 	This:C1470.scopes:=$2
 	This:C1470.googleKey:=JSON Parse:C1218($3)
-	This:C1470.googleKey.asString:=$3  // so spreadsheets can extend this class and pass key the way other methods do.
 	  //</handle params>
 	
 	
