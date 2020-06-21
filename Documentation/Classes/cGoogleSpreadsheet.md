@@ -18,20 +18,12 @@ If (OB Is empty (s))
 	s:=cs.cGoogleSpreadsheet.new(oGoogleComms;$url)
 End if
 ```
-After the comms object is created and instantiated, the authorization should be copied to other google objects using *getAccess()* and *setAccess()*.
-
-## Authorization Pass Example
-Passing the authorization from a cGoogleComms object to a spreadsheet looks like this:
-
-```4d
-s.setAccess(oComms.getAccess())
-```
-Then the spreadsheet is ready to go.
 
 ## API
 
 ### getSheetNames () -> sheetNames : collection
-Returns a collection with the names of the sheets (tabs) in the spreadsheet.
+1. Reloads all sheet data
+2. Returns a collection with the names of the sheets (tabs) in the spreadsheet.
 
 |Property|Description|
 |--|--|
@@ -39,7 +31,8 @@ Returns a collection with the names of the sheets (tabs) in the spreadsheet.
 |0..(length-1)|Collection indicies start at 0 and run to `length-1`.  Each element in the collection is the name of a sheet (tab)|
 
 ### <a name="getValues"></a>getValues (range:TEXT {; majorDimension:TEXT ; valueRenderOption:TEXT ; dateTimeRenderOption:TEXT}) -> object
-Returns an object containing a [valueRange](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values#ValueRange) from a spreadsheet. The caller must specify the spreadsheet ID and a range.
+1. Reloads all cell values
+2. Returns an object containing a [valueRange](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values#ValueRange) from a spreadsheet. The caller must specify the spreadsheet ID and a range.
 
 |Parameter Name|Required?|Parameter Type|Default|Description|
 |--|--|--|--|--|

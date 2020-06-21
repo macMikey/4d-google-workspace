@@ -22,7 +22,7 @@ Class constructor  // oGoogleAuth:object ; spreadsheet_url:text
 	
 Function getSheetNames  //  ( ) -> sheetNameList: collection
 	  // re-loads the sheet data from google, first
-	This:C1470.ss_get()
+	This:C1470._ss_get()
 	C_COLLECTION:C1488($sheetNames)
 	$sheetNames:=New collection:C1472
 	For ($i;0;This:C1470.sheetData.sheets.length-1)
@@ -33,6 +33,49 @@ Function getSheetNames  //  ( ) -> sheetNameList: collection
 	
 	  // _______________________________________________________________________________________________________________
 	
+Function getValues  //(range:TEXT {; majorDimension: Text ; valueRenderOption:Text ; dateTimeRenderOption:Text} )
+	  // Returns a range of values from a spreadsheet. The caller must specify the spreadsheet ID and a range.
+	
+	  //<handle params>
+	C_TEXT:C284($1;$2;$3;$4)
+	$queryString:=This:C1470._queryRange($1)  //e.g. 28d738fdhd3v83a/values/Sheet1!A1:B2
+	
+	$appendSymbol:=""
+	$valueRenderOption:=""
+	
+	$majorDimension:="DIMENSION_UNSPECIFIED"
+	If (Count parameters:C259>=3)
+		$valueRenderOption:=$3
+	End if 
+	
+	$valueRenderOption:="FORMATTED_VALUE"
+	If (Count parameters:C259>=4)
+		$valueRenderOption:=$4
+	End if 
+	
+	$dateTimeRenderOption:="SERIAL_NUMBER"
+	If (Count parameters:C259>=5)
+		$dateTimeRenderOption:=$5
+	End if 
+	
+	$queryString:=$queryString+"?"+\
+		"majorDimension="+$majorDimension+"&"+\
+		"valueRenderOption="+$valueRenderOption+"&"+\
+		"dateTimeRenderOption="+$dateTimeRenderOption
+	
+	$url:=This:C1470.endpoint+This:C1470.spreadsheetID+"/values/"+$queryString
+	C_OBJECT:C1216($oResult)
+	$oResult:=Super:C1706._http(HTTP GET method:K71:1;$url;"";This:C1470.auth.getHeader())
+	This:C1470.status:=$oResult.status
+	This:C1470.sheetData:=$oResult.value
+	
+	If (This:C1470.status#200)
+		$0:=Null:C1517
+	Else   //fail
+		$0:=This:C1470.sheetData
+	End if   //$status#200
+	
+	  // _______________________________________________________________________________________________________________
 	
 	  // ===============================================================================================================
 	
@@ -146,50 +189,6 @@ Function _ss_values_batchUpdateByDataFilter
 Function _ss_values_clear
 	  //POST/v4/spreadsheets/{spreadsheetId}/values/{range}:clear
 	  //Clears values from a spreadsheet.
-	
-	  // _______________________________________________________________________________________________________________
-	
-Function _ss_values_get  //(range:TEXT {; majorDimension: Text ; valueRenderOption:Text ; dateTimeRenderOption:Text} )
-	  // Returns a range of values from a spreadsheet. The caller must specify the spreadsheet ID and a range.
-	
-	  //<handle params>
-	C_TEXT:C284($1;$2;$3;$4)
-	$queryString:=This:C1470._queryRange($1)  //e.g. 28d738fdhd3v83a/values/Sheet1!A1:B2
-	
-	$appendSymbol:=""
-	$valueRenderOption:=""
-	
-	$majorDimension:="DIMENSION_UNSPECIFIED"
-	If (Count parameters:C259>=3)
-		$valueRenderOption:=$3
-	End if 
-	
-	$valueRenderOption:="FORMATTED_VALUE"
-	If (Count parameters:C259>=4)
-		$valueRenderOption:=$4
-	End if 
-	
-	$dateTimeRenderOption:="SERIAL_NUMBER"
-	If (Count parameters:C259>=5)
-		$dateTimeRenderOption:=$5
-	End if 
-	
-	$queryString:=$queryString+"?"+\
-		"majorDimension="+$majorDimension+"&"+\
-		"valueRenderOption="+$valueRenderOption+"&"+\
-		"dateTimeRenderOption="+$dateTimeRenderOption
-	
-	$url:=This:C1470.endpoint+This:C1470.spreadsheetID+"/values/"+$queryString
-	C_OBJECT:C1216($oResult)
-	$oResult:=Super:C1706._http(HTTP GET method:K71:1;$url;"";This:C1470.auth.getHeader())
-	This:C1470.status:=$oResult.status
-	This:C1470.sheetData:=$oResult.value
-	
-	If (This:C1470.status#200)
-		$0:=Null:C1517
-	Else   //fail
-		$0:=This:C1470.sheetData
-	End if   //$status#200
 	
 	  // _______________________________________________________________________________________________________________
 	
