@@ -40,13 +40,13 @@ $values:=$s.getValues($range)
 $counter:=0
 For ($i;0;($values.values.length-1))
 	For ($j;0;($values.values[$i].length-1))
-		$values.values[$i][$j]:=String:C10($counter)
+		$values.values[$i][$j]:=String:C10(100-$counter)
 		$counter:=$counter+1
 	End for 
 End for 
 
 C_OBJECT:C1216($result)
-$result:=$s._ss_values_update($range;$values;"USER_ENTERED")
+$result:=$s.setValues($range;$values;"USER_ENTERED")
   //</in all occupied cells, replace contents with a sequential number>
 
   //</EXAMPLE: Replace Cell Values>

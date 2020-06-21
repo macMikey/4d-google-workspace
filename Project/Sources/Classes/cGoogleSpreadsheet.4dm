@@ -77,6 +77,63 @@ Function getValues  //(range:TEXT {; majorDimension: Text ; valueRenderOption:Te
 	
 	  // _______________________________________________________________________________________________________________
 	
+Function setValues  //(range:TEXT ; valuesObject: Object ; valueInputOption:Text {; includeValuesInResponse: Boolean ; responseValueRenderOption: Text ; responseDateTimeRenderOption:Text})
+	  // PUT https://sheets.googleapis.com/v4/spreadsheets/{spreadsheetId}/values/{range}
+	  //Sets values in a range of a spreadsheet.
+	
+	
+	  //<handle params>
+	C_TEXT:C284($1)
+	C_OBJECT:C1216($2)
+	C_TEXT:C284($3)
+	C_BOOLEAN:C305($4)
+	C_TEXT:C284($5)
+	C_TEXT:C284($6)
+	
+	  //<mandatory parameters>
+	$rangeString:=This:C1470._queryRange($1)
+	$queryString:="?valueInputOption="+$3  // going to have at least one query parameter, the valuesInputOption
+	  //</mandatory parameters>
+	
+	
+	$appendSymbol:=""  // only append with ampersand if both params are defined
+	
+	
+	$includeValuesInResponse:="false"
+	If (Count parameters:C259>=4)
+		$includeValuesInResponse:=Lowercase:C14(String:C10($4))
+	End if 
+	
+	$responseValueRenderOption:="FORMATTED_VALUE"
+	If (Count parameters:C259>=5)
+		$includeValuesInResponse:=$5
+	End if 
+	
+	$responseDateTimeRenderOption:="SERIAL_NUMBER"
+	If (Count parameters:C259>=6)
+		$responseDateTimeRenderOption:=$6
+	End if 
+	
+	
+	$queryString:=$queryString+\
+		"&includeValuesInResponse="+$includeValuesInResponse+"&"+\
+		"&responseValueRenderOption="+$responseValueRenderOption+"&"+\
+		"&responseDateTimeRenderOption="+$responseDateTimeRenderOption
+	
+	  //</handle params>
+	
+	$url:=This:C1470.endpoint+This:C1470.spreadsheetID+"/values/"+$rangeString+$queryString
+	C_OBJECT:C1216($oResult)
+	$oResult:=Super:C1706._http(HTTP PUT method:K71:6;$url;JSON Stringify:C1217($2);This:C1470.auth.getHeader())
+	This:C1470.status:=$oResult.status
+	This:C1470.sheetData:=$oResult.value
+	
+	If (This:C1470.status#200)
+		$0:=Null:C1517  //debugx  $0:=this.null
+	Else   //fail‘
+		$0:=This:C1470.sheetData
+	End if   //$status#200
+	
 	  // ===============================================================================================================
 	
 	  //                                        P R I V A T E   F U N C T I O N S
@@ -192,62 +249,6 @@ Function _ss_values_clear
 	
 	  // _______________________________________________________________________________________________________________
 	
-Function _ss_values_update  //(range:TEXT ; valuesObject: Object ; valueInputOption:Text {; includeValuesInResponse: Boolean ; responseValueRenderOption: Text ; responseDateTimeRenderOption:Text})
-	  // PUT https://sheets.googleapis.com/v4/spreadsheets/{spreadsheetId}/values/{range}
-	  //Sets values in a range of a spreadsheet.
-	
-	
-	  //<handle params>
-	C_TEXT:C284($1)
-	C_OBJECT:C1216($2)
-	C_TEXT:C284($3)
-	C_BOOLEAN:C305($4)
-	C_TEXT:C284($5)
-	C_TEXT:C284($6)
-	
-	  //<mandatory parameters>
-	$rangeString:=This:C1470._queryRange($1)
-	$queryString:="?valueInputOption="+$3  // going to have at least one query parameter, the valuesInputOption
-	  //</mandatory parameters>
-	
-	
-	$appendSymbol:=""  // only append with ampersand if both params are defined
-	
-	
-	$includeValuesInResponse:="false"
-	If (Count parameters:C259>=4)
-		$includeValuesInResponse:=Lowercase:C14(String:C10($4))
-	End if 
-	
-	$responseValueRenderOption:="FORMATTED_VALUE"
-	If (Count parameters:C259>=5)
-		$includeValuesInResponse:=$5
-	End if 
-	
-	$responseDateTimeRenderOption:="SERIAL_NUMBER"
-	If (Count parameters:C259>=6)
-		$responseDateTimeRenderOption:=$6
-	End if 
-	
-	
-	$queryString:=$queryString+\
-		"&includeValuesInResponse="+$includeValuesInResponse+"&"+\
-		"&responseValueRenderOption="+$responseValueRenderOption+"&"+\
-		"&responseDateTimeRenderOption="+$responseDateTimeRenderOption
-	
-	  //</handle params>
-	
-	$url:=This:C1470.endpoint+This:C1470.spreadsheetID+"/values/"+$rangeString+$queryString
-	C_OBJECT:C1216($oResult)
-	$oResult:=Super:C1706._http(HTTP PUT method:K71:6;$url;JSON Stringify:C1217($2);This:C1470.auth.getHeader())
-	This:C1470.status:=$oResult.status
-	This:C1470.sheetData:=$oResult.value
-	
-	If (This:C1470.status#200)
-		$0:=Null:C1517  //debugx  $0:=this.null
-	Else   //fail‘
-		$0:=This:C1470.sheetData
-	End if   //$status#200
 	
 	  // ===============================================================================================================
 	

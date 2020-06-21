@@ -62,6 +62,56 @@ $oValues:=$ss.getValues("Sheet1!A1:B2";"ROWS";"UNFORMATTED_VALUE";"FORMATTED_STR
 #### Reference
 [Spreadsheet.values.get](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/get)
 
+### setValues (range:TEXT ;  values:Object {;valueInputOption:TEXT ; includeValuesInResponse: Boolean ; responseValueRenderOption:TEXT; responseDateTimeRenderOption:TEXT}) -> Object
+1. Updates the range with the *valuesObject* provided.  ***NOTE:  Existing values are not overwritten unless you specify a new value for a cell.***
+2. If successful, the response body contains an instance of [UpdateValuesResponse](https://developers.google.com/sheets/api/reference/rest/v4/UpdateValuesResponse).
+
+|Parameter Name|Required?|Parameter Type|Default|Description|
+|--|--|--|--|--|
+|range|Yes|Text|Required|A range, in A1 format.  Only a single range may be entered.|
+|valuesObject|Yes|Object|Required|*All fields in the value object are optional*<br>{<br>  "range": string,<br>  "majorDimension":  [Dimension](https://developers.google.com/sheets/api/reference/rest/v4/Dimension),<br>  "values": [array]<br>}|
+|valueInputOption|Yes|Text|Required|How the input data should be interpreted. <br>*RAW* - The values the user has entered will not be parsed and will be stored as-is.<br>*USER_ENTERED* - The values will be parsed as if the user typed them into the UI. Numbers will stay as numbers, but strings may be converted to numbers, dates, etc. following the same rules that are applied when entering text into a cell via the Google Sheets UI.|
+|includeValuesInResponse|No|Boolean|False|Determines if the update response should include the values of the cells that were updated. By default, responses do not include the updated values. If the range to write was larger than the range actually written, the response includes all values in the requested range (excluding trailing empty rows and columns).|
+|responseValueRenderOption|No|Text|*FORMATTED_VALUE*|Determines how values in the response should be rendered.<br>*FORMATTED_VALUE* - Values will be calculated & formatted in the reply according to the cell's formatting. Formatting is based on the spreadsheet's locale, not the requesting user's locale. For example, if `A1` is `1.23` and `A2` is `=A1` and formatted as currency, then `A2` would return `"$1.23"`.<br>*UNFORMATTED_VALUE* - Values will be calculated, but not formatted in the reply. For example, if `A1` is `1.23` and `A2` is `=A1` and formatted as currency, then `A2` would return the number `1.23`.<br>*FORMULA* - Values will not be calculated. The reply will include the formulas. For example, if `A1` is `1.23` and `A2` is `=A1` and formatted as currency, then A2 would return `"=A1"`.|
+|responseDateTimeRenderOption|No|Text|*SERIAL_NUMBER*| Determines how dates, times, and durations in the response should be rendered.  Ignored if *valueRenderOption* is *FORMATTED_VALUE*.<br>*SERIAL_NUMBER* - Instructs date, time, datetime, and duration fields to be output as doubles in "serial number" format, as popularized by Lotus 1-2-3. The whole number portion of the value (left of the decimal) counts the days since December 30th 1899. The fractional portion (right of the decimal) counts the time as a fraction of the day. For example, January 1st 1900 at noon would be 2.5, 2 because it's 2 days after December 30st 1899, and .5 because noon is half a day. February 1st 1900 at 3pm would be 33.625. This correctly treats the year 1900 as not a leap year.<br>*FORMATTED_STRING* - Instructs date, time, datetime, and duration fields to be output as strings in their given number format (which is dependent on the spreadsheet locale).|
+
+The *majorDimension* is specified in the body
+
+#### Return Object
+An object with the following fields:
+
+|Fieldname|Description|
+|--|--|
+|status|http status.  *200* means success|
+|value|If successful, it will contain an instance of [UpdateValuesResponse](https://developers.google.com/sheets/api/reference/rest/v4/UpdateValuesResponse) (see below).<br> If unsuccessful/error it will contain an error object.|
+
+**value subfields (assuming success)**
+
+|*value.*Fieldname|Type|Description|
+|--|--|--|
+|value.*spreadsheetId*|String|The spreadsheet the updates were applied to.|
+|value.*updatedRange*|String|The range (in A1 notation) that updates were applied to.|
+|value.*updatedRows*|Integer|The number of rows where at least one cell in the row was updated.|
+|value.*updatedColumns*|Integer|The number of columns where at least one cell in the column was updated.|
+|value.*updatedCells*|Integer|The number of cells updated.|
+|value.*updatedData*|object ([ValueRange](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values#ValueRange))|The values of the cells after updates were applied. This is only included if the request's includeValuesInResponse field was true.|
+
+#### Examples
+```4d
+$oResult:=ss_values_update("Sheet1!A1:B4";$oValues)
+If ($oResult.status=200)
+	//success
+end If
+```
+```4d
+$oResult:=ss_values_update("Sheet1!A1:B2";$oValues;"USER_ENTERED";True;"UNFORMATTED_VALUE";"FORMATTED_STRING")
+If ($oResult.status=200)
+	//success
+end If
+```
+
+#### Reference
+[Spreadsheet.values.update](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/update)
 
 ## Internal Structure
 #### None of the information in this section is necessary to use the class.  This is for developers who may want to modify the class and submit a PR to the repo.
@@ -139,62 +189,6 @@ $oSomeObject:=ss_get(;True)
 
 #### Reference
 [Spreadsheets.get](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/get#body.QUERY_PARAMETERS.ranges)
-
-
-### \_ss_values_get (range:TEXT {; majorDimension:TEXT ; valueRenderOption:TEXT ; dateTimeRenderOption:TEXT}) -> object
-See [getValues](#getValues)
-
-
-
-### \_ss_values_update (range:TEXT ;  values:Object {;valueInputOption:TEXT ; includeValuesInResponse: Boolean ; responseValueRenderOption:TEXT; responseDateTimeRenderOption:TEXT}) -> Object
-Updates the range with the *valuesObject* provided.  ***NOTE:  Existing values are not overwritten unless you specify a new value for a cell.***
-
-|Parameter Name|Required?|Parameter Type|Default|Description|
-|--|--|--|--|--|
-|range|Yes|Text|Required|A range, in A1 format.  Only a single range may be entered.|
-|valuesObject|Yes|Object|Required|*All fields in the value object are optional*<br>{<br>  "range": string,<br>  "majorDimension":  [Dimension](https://developers.google.com/sheets/api/reference/rest/v4/Dimension),<br>  "values": [array]<br>}|
-|valueInputOption|Yes|Text|Required|How the input data should be interpreted. <br>*RAW* - The values the user has entered will not be parsed and will be stored as-is.<br>*USER_ENTERED* - The values will be parsed as if the user typed them into the UI. Numbers will stay as numbers, but strings may be converted to numbers, dates, etc. following the same rules that are applied when entering text into a cell via the Google Sheets UI.|
-|includeValuesInResponse|No|Boolean|False|Determines if the update response should include the values of the cells that were updated. By default, responses do not include the updated values. If the range to write was larger than the range actually written, the response includes all values in the requested range (excluding trailing empty rows and columns).|
-|responseValueRenderOption|No|Text|*FORMATTED_VALUE*|Determines how values in the response should be rendered.<br>*FORMATTED_VALUE* - Values will be calculated & formatted in the reply according to the cell's formatting. Formatting is based on the spreadsheet's locale, not the requesting user's locale. For example, if `A1` is `1.23` and `A2` is `=A1` and formatted as currency, then `A2` would return `"$1.23"`.<br>*UNFORMATTED_VALUE* - Values will be calculated, but not formatted in the reply. For example, if `A1` is `1.23` and `A2` is `=A1` and formatted as currency, then `A2` would return the number `1.23`.<br>*FORMULA* - Values will not be calculated. The reply will include the formulas. For example, if `A1` is `1.23` and `A2` is `=A1` and formatted as currency, then A2 would return `"=A1"`.|
-|responseDateTimeRenderOption|No|Text|*SERIAL_NUMBER*| Determines how dates, times, and durations in the response should be rendered.  Ignored if *valueRenderOption* is *FORMATTED_VALUE*.<br>*SERIAL_NUMBER* - Instructs date, time, datetime, and duration fields to be output as doubles in "serial number" format, as popularized by Lotus 1-2-3. The whole number portion of the value (left of the decimal) counts the days since December 30th 1899. The fractional portion (right of the decimal) counts the time as a fraction of the day. For example, January 1st 1900 at noon would be 2.5, 2 because it's 2 days after December 30st 1899, and .5 because noon is half a day. February 1st 1900 at 3pm would be 33.625. This correctly treats the year 1900 as not a leap year.<br>*FORMATTED_STRING* - Instructs date, time, datetime, and duration fields to be output as strings in their given number format (which is dependent on the spreadsheet locale).|
-
-The *majorDimension* is specified in the body
-
-#### Return Object
-An object with the following fields:
-
-|Fieldname|Description|
-|--|--|
-|status|http status.  *200* means success|
-|value|If successful, it will contain an instance of [UpdateValuesResponse](https://developers.google.com/sheets/api/reference/rest/v4/UpdateValuesResponse) (see below).<br> If unsuccessful/error it will contain an error object.|
-
-**value subfields (assuming success)**
-
-|*value.*Fieldname|Type|Description|
-|--|--|--|
-|value.*spreadsheetId*|String|The spreadsheet the updates were applied to.|
-|value.*updatedRange*|String|The range (in A1 notation) that updates were applied to.|
-|value.*updatedRows*|Integer|The number of rows where at least one cell in the row was updated.|
-|value.*updatedColumns*|Integer|The number of columns where at least one cell in the column was updated.|
-|value.*updatedCells*|Integer|The number of cells updated.|
-|value.*updatedData*|object ([ValueRange](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values#ValueRange))|The values of the cells after updates were applied. This is only included if the request's includeValuesInResponse field was true.|
-
-#### Examples
-```4d
-$oResult:=ss_values_update("Sheet1!A1:B4";$oValues)
-If ($oResult.status=200)
-	//success
-end If
-```
-```4d
-$oResult:=ss_values_update("Sheet1!A1:B2";$oValues;"USER_ENTERED";True;"UNFORMATTED_VALUE";"FORMATTED_STRING")
-If ($oResult.status=200)
-	//success
-end If
-```
-
-#### Reference
-[Spreadsheet.values.update](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/update)
 
 
 ## References
