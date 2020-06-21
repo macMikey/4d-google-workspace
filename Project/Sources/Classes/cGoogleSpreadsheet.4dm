@@ -16,14 +16,37 @@ Class constructor  // oGoogleAuth:object ; spreadsheet_url:text
 	
 	  // ===============================================================================================================
 	
+	  //                                         P U B L I C   F U N C T I O N S
 	
-Function developerMetadata_get
+	  // ===============================================================================================================
+	
+Function getSheetNames  //  ( ) -> sheetNameList: collection
+	  // re-loads the sheet data from google, first
+	This:C1470.ss_get()
+	C_COLLECTION:C1488($sheetNames)
+	$sheetNames:=New collection:C1472
+	For ($i;0;This:C1470.sheetData.sheets.length-1)
+		$sheetNames[$i]:=This:C1470.sheetData.sheets[$i].properties.title
+	End for 
+	
+	$0:=$sheetNames
+	
+	  // _______________________________________________________________________________________________________________
+	
+	
+	  // ===============================================================================================================
+	
+	  //                                        P R I V A T E   F U N C T I O N S
+	
+	  // ===============================================================================================================
+	
+Function _developerMetadata_get
 	  //GET/v4/spreadsheets/{spreadsheetId}/developerMetadata/{metadataId}
 	  //Returns the developer metadata with the specified ID.
 	
 	  // _______________________________________________________________________________________________________________
 	
-Function developerMetadata_search
+Function _developerMetadata_search
 	  //POST/v4/spreadsheets/{spreadsheetId}/developerMetadata:search
 	  //Returns all developer metadata matching the specified DataFilter.
 	
