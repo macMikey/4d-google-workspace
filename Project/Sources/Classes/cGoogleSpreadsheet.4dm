@@ -20,11 +20,15 @@ Class constructor  // oGoogleAuth:object ; spreadsheet_url:text
 	
 	  // ===============================================================================================================
 	
-Function getSheetNames  //  ( ) -> sheetNameList: collection
-	  // re-loads the sheet data from google, first
-	This:C1470._ss_get()
+Function getSheetNames  //  -> sheetNameList: collection
+	  // optionally reloads the sheet, first
+	
+	
 	C_COLLECTION:C1488($sheetNames)
 	$sheetNames:=New collection:C1472
+	
+	This:C1470._loadIfNotLoaded()
+	
 	For ($i;0;This:C1470.sheetData.sheets.length-1)
 		$sheetNames[$i]:=This:C1470.sheetData.sheets[$i].properties.title
 	End for 
@@ -33,29 +37,27 @@ Function getSheetNames  //  ( ) -> sheetNameList: collection
 	
 	  // _______________________________________________________________________________________________________________
 	
-Function getValues  //(range:TEXT {; majorDimension: Text ; valueRenderOption:Text ; dateTimeRenderOption:Text} )
+Function getValues  //(range:TEXT {; majorDimension:Text ; valueRenderOption:Text ; dateTimeRenderOption:Text} )
 	  // Returns a range of values from a spreadsheet. The caller must specify the spreadsheet ID and a range.
 	
 	  //<handle params>
 	C_TEXT:C284($1;$2;$3;$4)
 	$queryString:=This:C1470._queryRange($1)  //e.g. 28d738fdhd3v83a/values/Sheet1!A1:B2
 	
-	$appendSymbol:=""
-	$valueRenderOption:=""
-	
 	$majorDimension:="DIMENSION_UNSPECIFIED"
+	$valueRenderOption:="FORMATTED_VALUE"
+	$dateTimeRenderOption:="SERIAL_NUMBER"
+	
+	If (Count parameters:C259>=2
+		$majorDimension:=$2
+	End if 
+	
 	If (Count parameters:C259>=3)
 		$valueRenderOption:=$3
 	End if 
 	
-	$valueRenderOption:="FORMATTED_VALUE"
 	If (Count parameters:C259>=4)
-		$valueRenderOption:=$4
-	End if 
-	
-	$dateTimeRenderOption:="SERIAL_NUMBER"
-	If (Count parameters:C259>=5)
-		$dateTimeRenderOption:=$5
+		$dateTimeRenderOption:=$4
 	End if 
 	
 	$queryString:=$queryString+"?"+\
@@ -68,6 +70,43 @@ Function getValues  //(range:TEXT {; majorDimension: Text ; valueRenderOption:Te
 	$oResult:=Super:C1706._http(HTTP GET method:K71:1;$url;"";This:C1470.auth.getHeader())
 	This:C1470.status:=$oResult.status
 	This:C1470.sheetData:=$oResult.value
+	
+	If (This:C1470.status#200)
+		$0:=Null:C1517
+	Else   //fail
+		$0:=This:C1470.sheetData
+	End if   //$status#200
+	
+	  // _______________________________________________________________________________________________________________
+	
+Function load  // {(rangeString:text , includeGridData:boolean)}
+	  // loads all spreadsheet data
+	  // optional params:
+	
+	  //<handle params>
+	C_TEXT:C284($1)
+	C_BOOLEAN:C305($2)
+	
+	$rangeString:=""
+	$includeGridData:="false"
+	
+	If (Count parameters:C259>=2)
+		$includeGridData:=Lowercase:C14(String:C10($2))
+	End if 
+	  //</handle params>
+	
+	
+	$queryString:="?"+\
+		This:C1470._queryRange($1)+"&"+\
+		"includeGridData="+$includeGridData
+	
+	
+	$url:=This:C1470.endpoint+This:C1470.spreadsheetID+$queryString
+	C_OBJECT:C1216($oResult)
+	$oResult:=Super:C1706._http(HTTP GET method:K71:1;$url;"";This:C1470.auth.getHeader())
+	This:C1470.status:=$oResult.status
+	This:C1470.sheetData:=$oResult.value
+	
 	
 	If (This:C1470.status#200)
 		$0:=Null:C1517
@@ -129,7 +168,7 @@ Function setValues  //(range:TEXT ; valuesObject: Object ; valueInputOption:Text
 	This:C1470.sheetData:=$oResult.value
 	
 	If (This:C1470.status#200)
-		$0:=Null:C1517  //debugx  $0:=this.null
+		$0:=Null:C1517
 	Else   //fail‘
 		$0:=This:C1470.sheetData
 	End if   //$status#200
@@ -152,6 +191,19 @@ Function _developerMetadata_search
 	
 	  // _______________________________________________________________________________________________________________
 	
+Function _loadIfNotLoaded  //   ( )  -> sheetWasNotLoaded :boolean
+	  // make sure sheet has been loaded for operations that just use already-loaded data.
+	  // return whether or not the sheet was already loaded
+	
+	$0:=False:C215  //reloaded
+	If (This:C1470.sheetData=Null:C1517)
+		$0:=True:C214  //reloaded
+		This:C1470.load()
+	End if 
+	
+	  // _______________________________________________________________________________________________________________
+	
+	
 Function _ss_batchUpdate
 	  //POST/v4/spreadsheets/{spreadsheetId}:batchUpdate
 	  //Applies one or more updates to the spreadsheet.
@@ -163,37 +215,6 @@ Function _ss_create
 	  //Creates a spreadsheet, returning the newly created spreadsheet.
 	  // _______________________________________________________________________________________________________________
 	
-Function _ss_get  // {(rangeString:text , includeGridData:boolean)}
-	  // loads all spreadsheet data
-	  // optional params:
-	
-	  //<handle params>
-	C_TEXT:C284($1)
-	C_BOOLEAN:C305($2)
-	
-	$includeGridData:=False:C215
-	If (Count parameters:C259#2)
-		$includeGridData:=False:C215
-	End if 
-	
-	$queryString:="?"+\
-		This:C1470._queryRange($1)+"&"+\
-		"includeGridData="+Lowercase:C14(String:C10($includeGridData))
-	  //</handle params>
-	
-	$url:=This:C1470.endpoint+This:C1470.spreadsheetID+$queryString
-	C_OBJECT:C1216($oResult)
-	$oResult:=Super:C1706._http(HTTP GET method:K71:1;$url;"";This:C1470.auth.getHeader())
-	This:C1470.status:=$oResult.status
-	This:C1470.sheetData:=$oResult.value
-	
-	If (This:C1470.status#200)
-		$0:=Null:C1517
-	Else   //fail
-		$0:=This:C1470.sheetData
-	End if   //$status#200
-	
-	  // _______________________________________________________________________________________________________________
 	
 Function _ss_getByDataFilter
 	  //POST/v4/spreadsheets/{spreadsheetId}:getByDataFilter

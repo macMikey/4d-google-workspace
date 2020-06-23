@@ -62,6 +62,55 @@ $oValues:=$ss.getValues("Sheet1!A1:B2";"ROWS";"UNFORMATTED_VALUE";"FORMATTED_STR
 #### Reference
 [Spreadsheet.values.get](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/get)
 
+### load ( { range:TEXT ; includeGridData:Boolean } ) -> Object
+Returns the spreadsheet at the given ID. The caller must specify the spreadsheet ID.
+By default, data within grids will not be returned. You can include grid data one of two ways:
+	1. Specify a field mask listing your desired fields using the fields URL parameter in HTTP
+	2. Set the includeGridData URL parameter to true. If a field mask is set, the includeGridData parameter is ignored
+For large spreadsheets, it is recommended to retrieve only the specific fields of the spreadsheet that you want.
+To retrieve only subsets of the spreadsheet, use the ranges URL parameter. Multiple ranges can be specified. Limiting the range will return only the portions of the spreadsheet that intersect the requested ranges. Ranges are specified using A1 notation.
+
+#### Parameters
+
+|Parameter Name|Required?|Parameter Type|Default|Description|
+|--|--|--|--|--|
+|range|No|Text|Null|A range, in A1 format.  Multiple ranges can be separated with commas|
+|includeGridData|No|Boolean|False|Specify whether to include grid data|
+
+#### Return Object
+An object with the following fields:
+
+|Fieldname|Description|
+|--|--|
+|status|http status.  *200* means success|
+|value|If successful, the response body contains an instance of [Spreadsheet](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#Spreadsheet).<br> If unsuccessful/error it will contain an error object.|
+
+**value subfields (assuming success)**
+
+|*value.*Fieldname|Type|Description|
+|--|--|--|
+|value.*spreadsheetId*|string|The ID of the spreadsheet.|
+|value.*properties*|object|[Overall properties of a spreadsheet.](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#SpreadsheetProperties)|
+|value.*sheets*|object|[The sheets that are part of a spreadsheet.](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/sheets#Sheet)| 	
+|value.*namedRanges*|object|[The named ranges defined in a spreadsheet.](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#NamedRange)|
+|value.*spreadsheetUrl*|string|The url of the spreadsheet.|
+|value.*developerMetadata*|object|[The developer metadata associated with a spreadsheet.](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.developerMetadata#DeveloperMetadata)|
+
+#### Examples
+```4d
+$oSomeObject:=ss_get()
+```
+```4d
+$oSomeObject:=ss_get("Sheet1!A1:B2, Sheet2!B:B")
+```
+```4d
+$oSomeObject:=ss_get(;True)
+```
+
+#### Reference
+[Spreadsheets.get](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/get#body.QUERY_PARAMETERS.ranges)
+
+
 ### setValues (range:TEXT ;  values:Object {;valueInputOption:TEXT ; includeValuesInResponse: Boolean ; responseValueRenderOption:TEXT; responseDateTimeRenderOption:TEXT}) -> Object
 1. Updates the range with the *valuesObject* provided.  ***NOTE:  Existing values are not overwritten unless you specify a new value for a cell.***
 2. If successful, the response body contains an instance of [UpdateValuesResponse](https://developers.google.com/sheets/api/reference/rest/v4/UpdateValuesResponse).
@@ -142,53 +191,6 @@ Grabs the part of the url where the current spreadsheet lives
 ### \_queryRange (range:TEXT)
 Builds a range query string in A1 format
 
-### \_ss_get ( { range:TEXT ; includeGridData:Boolean } ) -> Object
-Returns the spreadsheet at the given ID. The caller must specify the spreadsheet ID.
-By default, data within grids will not be returned. You can include grid data one of two ways:
-	1. Specify a field mask listing your desired fields using the fields URL parameter in HTTP
-	2. Set the includeGridData URL parameter to true. If a field mask is set, the includeGridData parameter is ignored
-For large spreadsheets, it is recommended to retrieve only the specific fields of the spreadsheet that you want.
-To retrieve only subsets of the spreadsheet, use the ranges URL parameter. Multiple ranges can be specified. Limiting the range will return only the portions of the spreadsheet that intersect the requested ranges. Ranges are specified using A1 notation.
-
-#### Parameters
-
-|Parameter Name|Required?|Parameter Type|Default|Description|
-|--|--|--|--|--|
-|range|No|Text|Null|A range, in A1 format.  Multiple ranges can be separated with commas|
-|includeGridData|No|Boolean|False|Specify whether to include grid data|
-
-#### Return Object
-An object with the following fields:
-
-|Fieldname|Description|
-|--|--|
-|status|http status.  *200* means success|
-|value|If successful, the response body contains an instance of [Spreadsheet](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#Spreadsheet).<br> If unsuccessful/error it will contain an error object.|
-
-**value subfields (assuming success)**
-
-|*value.*Fieldname|Type|Description|
-|--|--|--|
-|value.*spreadsheetId*|string|The ID of the spreadsheet.|
-|value.*properties*|object|[Overall properties of a spreadsheet.](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#SpreadsheetProperties)|
-|value.*sheets*|object|[The sheets that are part of a spreadsheet.](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/sheets#Sheet)| 	
-|value.*namedRanges*|object|[The named ranges defined in a spreadsheet.](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#NamedRange)|
-|value.*spreadsheetUrl*|string|The url of the spreadsheet.|
-|value.*developerMetadata*|object|[The developer metadata associated with a spreadsheet.](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.developerMetadata#DeveloperMetadata)|
-
-#### Examples
-```4d
-$oSomeObject:=ss_get()
-```
-```4d
-$oSomeObject:=ss_get("Sheet1!A1:B2, Sheet2!B:B")
-```
-```4d
-$oSomeObject:=ss_get(;True)
-```
-
-#### Reference
-[Spreadsheets.get](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/get#body.QUERY_PARAMETERS.ranges)
 
 
 ## References
