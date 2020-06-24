@@ -173,13 +173,16 @@ end If
 
 ## Internal API
 
-### \_getSheetIDFromURL ( url:TEXT )
+### \_getSheetIDFromURL ( url:TEXT ) -> Text
 Grabs the part of the url where the ID of the current sheet (tab) lives
 
-### \_getSpreadsheetIDFromURL ( url:TEXT )
+### \_getSpreadsheetIDFromURL ( url:TEXT ) -> Text
 Grabs the part of the url where the current spreadsheet lives.  I'm not sure why we have this any longer, since none of the API requires it.
 
-### \_queryRange (range:TEXT)
+###\_loadIfNotLoaded () -> Boolean
+Loads the spreadsheet data with default options if the spreadsheet has not been loaded yet.
+
+### \_queryRange (range:TEXT) -> Text
 Builds a range query string in A1 format for use in calls from the class
 
 

@@ -179,15 +179,26 @@ Function setValues  //(range:TEXT ; valuesObject: Object ; valueInputOption:Text
 	
 	  // ===============================================================================================================
 	
-Function _developerMetadata_get
-	  //GET/v4/spreadsheets/{spreadsheetId}/developerMetadata/{metadataId}
-	  //Returns the developer metadata with the specified ID.
+Function _getSheetIDFromURL  //url:text
+	  // accepts a url and extracts the ID of the sheet from that
+	$found:=Match regex:C1019("(?<=[#&]gid=)([0-9]+)";$1;1;$foundAt;$length)
+	If (Not:C34($found))
+		$0:=""
+	Else 
+		$0:=Substring:C12($1;$foundAt;$length)
+	End if   //(not($found))
 	
 	  // _______________________________________________________________________________________________________________
 	
-Function _developerMetadata_search
-	  //POST/v4/spreadsheets/{spreadsheetId}/developerMetadata:search
-	  //Returns all developer metadata matching the specified DataFilter.
+Function _getSSIDFromURL  //url:text
+	  // accepts a url and extracts the ID of the sheet from that
+	C_TEXT:C284($1)
+	$found:=Match regex:C1019("(?<=/spreadsheets/d/)([a-zA-Z0-9-_]+)";$1;1;$foundAt;$length)
+	If (Not:C34($found)
+		$0:=""
+	Else 
+		$0:=Substring:C12($1;$foundAt;$length)
+	End if   //(not($found))
 	
 	  // _______________________________________________________________________________________________________________
 	
@@ -203,6 +214,38 @@ Function _loadIfNotLoaded  //   ( )  -> sheetWasNotLoaded :boolean
 	
 	  // _______________________________________________________________________________________________________________
 	
+Function _queryRange  //(rangeString:text)
+	  //turns a range string into a query-capable string
+	  // 1. replaces colons with %3A
+	  // 2. removes all spaces
+	  // 3. handles comma-separated compound ranges
+	C_TEXT:C284($1;$0)
+	$0:=""
+	If ($1#"")
+		$0:=$1
+		$0:=Replace string:C233($0;":";"%3A")  //url encode
+		$0:=Replace string:C233($0;",";"&ranges=")  // A1:B1,C1 becomes ranges=A1:B1&ranges=C1
+		$0:=Replace string:C233($0;" ";"")
+	End if 
+	
+	  // ===============================================================================================================
+	
+	  //                         G O O G L E    S H E E T S    A P I    T O    I M P L E M E N T
+	
+	  // ===============================================================================================================
+	
+	
+Function _developerMetadata_get
+	  //GET/v4/spreadsheets/{spreadsheetId}/developerMetadata/{metadataId}
+	  //Returns the developer metadata with the specified ID.
+	
+	  // _______________________________________________________________________________________________________________
+	
+Function _developerMetadata_search
+	  //POST/v4/spreadsheets/{spreadsheetId}/developerMetadata:search
+	  //Returns all developer metadata matching the specified DataFilter.
+	
+	  // _______________________________________________________________________________________________________________
 	
 Function _ss_batchUpdate
 	  //POST/v4/spreadsheets/{spreadsheetId}:batchUpdate
@@ -272,44 +315,3 @@ Function _ss_values_clear
 	
 	
 	  // ===============================================================================================================
-	
-	
-Function _getSheetIDFromURL  //url:text
-	  // accepts a url and extracts the ID of the sheet from that
-	$found:=Match regex:C1019("(?<=[#&]gid=)([0-9]+)";$1;1;$foundAt;$length)
-	If (Not:C34($found))
-		$0:=""
-	Else 
-		$0:=Substring:C12($1;$foundAt;$length)
-	End if   //(not($found))
-	
-	  // _______________________________________________________________________________________________________________
-	
-Function _getSSIDFromURL  //url:text
-	  // accepts a url and extracts the ID of the sheet from that
-	C_TEXT:C284($1)
-	$found:=Match regex:C1019("(?<=/spreadsheets/d/)([a-zA-Z0-9-_]+)";$1;1;$foundAt;$length)
-	If (Not:C34($found)
-		$0:=""
-	Else 
-		$0:=Substring:C12($1;$foundAt;$length)
-	End if   //(not($found))
-	
-	  // _______________________________________________________________________________________________________________
-	
-Function _queryRange  //(rangeString:text)
-	  //turns a range string into a query-capable string
-	  // 1. replaces colons with %3A
-	  // 2. removes all spaces
-	  // 3. handles comma-separated compound ranges
-	C_TEXT:C284($1;$0)
-	$0:=""
-	If ($1#"")
-		$0:=$1
-		$0:=Replace string:C233($0;":";"%3A")  //url encode
-		$0:=Replace string:C233($0;",";"&ranges=")  // A1:B1,C1 becomes ranges=A1:B1&ranges=C1
-		$0:=Replace string:C233($0;" ";"")
-	End if 
-	
-	  // _______________________________________________________________________________________________________________
-	
