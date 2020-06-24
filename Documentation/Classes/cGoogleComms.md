@@ -8,6 +8,7 @@ Handles all the comms with google.  This is intended to be a private library for
 |Name|Datatype|Required|Default|Description|
 |--|--|--|--|--|
 |Connection Method|Text|**NOT IMPLEMENTED**|**native**|**native** - use 4D's HTTP methods<br>**curl** - use [libCurl plugin](https://github.com/miyako/4d-plugin-curl-v2)<br>**ntk** - use [ntk plugin](https://www.pluggers.nl/product/ntk-plugin/)
+|Connection Method<br>***Not Implemented Yet***|Text|No|*native*|**native** - use 4D's HTTP methods<br>**curl** - use [libCurl plugin](https://github.com/miyako/4d-plugin-curl-v2)<br>**itk** - use [itk plugin](https://www.e-node.net/en/P5/Internet-ToolKit.html)<br>**ntk** - use [ntk plugin](https://www.pluggers.nl/product/ntk-plugin/)
 
 ## Constructor Example
 

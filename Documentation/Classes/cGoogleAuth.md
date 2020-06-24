@@ -12,7 +12,7 @@ There should be a single *cGoogleAuth* object for your app, which will then be p
 |Username|Text|Yes|Required|Username to act on behalf of|
 |Scopes|Text|Yes|Required|**Space-Delimited** scopes to use|
 |Key|Text|Yes|Required|The text of the API key granted by Google|
-|Connection Method<br>***Not Implemented Yet***|Text|No|*native*|**native** - use 4D's HTTP methods<br>**curl** - use [libCurl plugin](https://github.com/miyako/4d-plugin-curl-v2)<br>**ntk** - use [ntk plugin](https://www.pluggers.nl/product/ntk-plugin/)
+|Connection Method<br>***Not Implemented Yet***|Text|No|*native*|**native** - use 4D's HTTP methods<br>**curl** - use [libCurl plugin](https://github.com/miyako/4d-plugin-curl-v2)<br>**itk** - use [itk plugin](https://www.e-node.net/en/P5/Internet-ToolKit.html)<br>**ntk** - use [ntk plugin](https://www.pluggers.nl/product/ntk-plugin/)
 
 ## Constructor Example
 
@@ -81,3 +81,6 @@ oHead (object containing the header information for the token request.  Stored t
 scoopes:  scopes the app is requesting to use
 url:		 url to call for the oauth2 request
 ```
+
+## Reference
+https://developers.google.com/identity/protocols/oauth2

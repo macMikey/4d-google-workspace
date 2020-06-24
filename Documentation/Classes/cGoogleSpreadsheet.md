@@ -31,6 +31,8 @@ End if
 |0..(length-1)|Collection indicies start at 0 and run to `length-1`.  Each element in the collection is the name of a sheet (tab)|
 
 ### <a name="getValues"></a>getValues (range:TEXT {; majorDimension:TEXT ; valueRenderOption:TEXT ; dateTimeRenderOption:TEXT}) -> object
+Implements [Spreadsheet.values.get](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/get)
+
 1. Reloads all cell values
 2. Returns an object containing a [valueRange](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values#ValueRange) from a spreadsheet. The caller must specify the spreadsheet ID and a range.
 
@@ -59,10 +61,9 @@ $oValues:=$ss.getValues("Sheet1!A1:B4")
 $oValues:=$ss.getValues("Sheet1!A1:B2";"ROWS";"UNFORMATTED_VALUE";"FORMATTED_STRING")
 ```
 
-#### Reference
-[Spreadsheet.values.get](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/get)
-
 ### load ( { range:TEXT ; includeGridData:Boolean } ) -> Object
+Implements [Spreadsheets.get](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/get#body.QUERY_PARAMETERS.ranges)
+
 Returns the spreadsheet at the given ID. The caller must specify the spreadsheet ID.
 By default, data within grids will not be returned. You can include grid data one of two ways:
 	1. Specify a field mask listing your desired fields using the fields URL parameter in HTTP
@@ -107,11 +108,9 @@ $oSomeObject:=ss_get("Sheet1!A1:B2, Sheet2!B:B")
 $oSomeObject:=ss_get(;True)
 ```
 
-#### Reference
-[Spreadsheets.get](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/get#body.QUERY_PARAMETERS.ranges)
-
-
 ### setValues (range:TEXT ;  values:Object {;valueInputOption:TEXT ; includeValuesInResponse: Boolean ; responseValueRenderOption:TEXT; responseDateTimeRenderOption:TEXT}) -> Object
+Implements [Spreadsheet.values.update](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/update)
+
 1. Updates the range with the *valuesObject* provided.  ***NOTE:  Existing values are not overwritten unless you specify a new value for a cell.***
 2. If successful, the response body contains an instance of [UpdateValuesResponse](https://developers.google.com/sheets/api/reference/rest/v4/UpdateValuesResponse).
 
@@ -159,9 +158,6 @@ If ($oResult.status=200)
 end If
 ```
 
-#### Reference
-[Spreadsheet.values.update](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/update)
-
 ## Internal Structure
 #### None of the information in this section is necessary to use the class.  This is for developers who may want to modify the class and submit a PR to the repo.
 **Assume that all properties (and at least some functions) will eventually be made private (not available to be used outside of the class).  Any function that begins with underscore**  ***and all properties***  **should be considered private.**
@@ -176,20 +172,15 @@ end If
 |sheetData|the object returned from google|
 
 ## Internal API
-### None of the information in this section is necessary to use the class.  This is for developers who may want to modify the class and submit a PR to the repo.
-**Assume that all properties (and at least some functions) will eventually be made private (not available to be used outside of the class).  Any function that begins with underscore**  ***and all properties***  **should be considered private.**
-
-The Internal API lines up exactly with v4 of [Google's REST API](https://developers.google.com/sheets/api/reference/rest)
-
 
 ### \_getSheetIDFromURL ( url:TEXT )
 Grabs the part of the url where the ID of the current sheet (tab) lives
 
 ### \_getSpreadsheetIDFromURL ( url:TEXT )
-Grabs the part of the url where the current spreadsheet lives
+Grabs the part of the url where the current spreadsheet lives.  I'm not sure why we have this any longer, since none of the API requires it.
 
 ### \_queryRange (range:TEXT)
-Builds a range query string in A1 format
+Builds a range query string in A1 format for use in calls from the class
 
 
 
