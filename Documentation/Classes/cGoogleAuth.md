@@ -22,7 +22,7 @@ If (OB Is empty ($oGoogleAuth))
 	$oGoogleAuth:=cs.cGoogleAuth.new($username;$scopes;$key;"native")
 End if
 ```
-## [Using Comms With Multiple Docs Simultaneously](#using-comms-across-multiple-objects-simultaneously)
+## Using Comms With Multiple Docs Simultaneously
 The *cGoogleComms* object is designed to be independent of other objects.  Before you create your other objects, you will create the cGoogleAuth object, and then pass it to each of your other objects.
 When those objects wish to send a request to Google, they will obtain the current authorization information from the *cGoogleAuth* class to send with the request.  If the authorization/access information is stale or has expired, the object will refresh it before processing your request.
 In the event that an access token expires unexpectedly, you can force the *cGoogleAuth* object to refresh the token.

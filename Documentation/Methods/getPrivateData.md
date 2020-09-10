@@ -1,5 +1,8 @@
-﻿# function getPrivateData
-<!-- Type your summary here -->
+<!--
+getPrivateData ( short filename with extension : TEXT ) -> contentsOfFile : TEXT
+ -->
+ ﻿# function getPrivateData
+
 ## Description
 Returns contents of /Resources/Private/$1
 
