@@ -10,18 +10,18 @@ Class constructor  // oGoogleAuth:object ; spreadsheet_url:text
 	This:C1470.auth:=$1
 	This:C1470.spreadsheetID:=This:C1470._getSSIDFromURL($2)
 	
-	  //<initialize other values>
+	//<initialize other values>
 	This:C1470.endpoint:="https://sheets.googleapis.com/v4/spreadsheets/"
-	  //</initialize other values>
+	//</initialize other values>
 	
-	  // ===============================================================================================================
+	// ===============================================================================================================
 	
-	  //                                         P U B L I C   F U N C T I O N S
+	//                                         P U B L I C   F U N C T I O N S
 	
-	  // ===============================================================================================================
+	// ===============================================================================================================
 	
 Function getSheetNames  //  -> sheetNameList: collection
-	  // optionally reloads the sheet, first
+	// optionally reloads the sheet, first
 	
 	
 	C_COLLECTION:C1488($sheetNames)
@@ -29,18 +29,22 @@ Function getSheetNames  //  -> sheetNameList: collection
 	
 	This:C1470._loadIfNotLoaded()
 	
-	For ($i;0;This:C1470.sheetData.sheets.length-1)
-		$sheetNames[$i]:=This:C1470.sheetData.sheets[$i].properties.title
-	End for 
+	If (This:C1470.status#200)
+		$0:=Null:C1517
+	Else 
+		For ($i;0;This:C1470.sheetData.sheets.length-1)
+			$sheetNames[$i]:=This:C1470.sheetData.sheets[$i].properties.title
+		End for 
+		
+		$0:=$sheetNames
+	End if 
 	
-	$0:=$sheetNames
-	
-	  // _______________________________________________________________________________________________________________
+	// _______________________________________________________________________________________________________________
 	
 Function getValues  //(range:TEXT {; majorDimension:Text ; valueRenderOption:Text ; dateTimeRenderOption:Text} )
-	  // Returns a range of values from a spreadsheet. The caller must specify the spreadsheet ID and a range.
+	// Returns a range of values from a spreadsheet. The caller must specify the spreadsheet ID and a range.
 	
-	  //<handle params>
+	//<handle params>
 	C_TEXT:C284($1;$2;$3;$4)
 	$queryString:=This:C1470._queryRange($1)  //e.g. 28d738fdhd3v83a/values/Sheet1!A1:B2
 	
@@ -77,13 +81,13 @@ Function getValues  //(range:TEXT {; majorDimension:Text ; valueRenderOption:Tex
 		$0:=This:C1470.sheetData
 	End if   //$status#200
 	
-	  // _______________________________________________________________________________________________________________
+	// _______________________________________________________________________________________________________________
 	
 Function load  // {(rangeString:text , includeGridData:boolean)}
-	  // loads all spreadsheet data
-	  // optional params:
+	// loads all spreadsheet data
+	// optional params:
 	
-	  //<handle params>
+	//<handle params>
 	C_TEXT:C284($1)
 	C_BOOLEAN:C305($2)
 	
@@ -93,7 +97,7 @@ Function load  // {(rangeString:text , includeGridData:boolean)}
 	If (Count parameters:C259>=2)
 		$includeGridData:=Lowercase:C14(String:C10($2))
 	End if 
-	  //</handle params>
+	//</handle params>
 	
 	
 	$queryString:="?"+\
@@ -114,14 +118,28 @@ Function load  // {(rangeString:text , includeGridData:boolean)}
 		$0:=This:C1470.sheetData
 	End if   //$status#200
 	
-	  // _______________________________________________________________________________________________________________
+	// _______________________________________________________________________________________________________________
+	
+Function parseError  //()
+	// parses an error object and returns the contents
+	var $oError : Object
+	$cr:=Char:C90(Carriage return:K15:38)
+	$oError:=This:C1470.sheetData.error
+	$0:=""
+	If ($oError#Null:C1517)
+		$0:="Code: "+String:C10($oError.code)+$cr+\
+			"Status: "+$oError.status+$cr+\
+			"Message: "+$oError.message
+	End if 
+	
+	// _______________________________________________________________________________________________________________
 	
 Function setValues  //(range:TEXT ; valuesObject: Object ; valueInputOption:Text {; includeValuesInResponse: Boolean ; responseValueRenderOption: Text ; responseDateTimeRenderOption:Text})
-	  // PUT https://sheets.googleapis.com/v4/spreadsheets/{spreadsheetId}/values/{range}
-	  //Sets values in a range of a spreadsheet.
+	// PUT https://sheets.googleapis.com/v4/spreadsheets/{spreadsheetId}/values/{range}
+	//Sets values in a range of a spreadsheet.
 	
 	
-	  //<handle params>
+	//<handle params>
 	C_TEXT:C284($1)
 	C_OBJECT:C1216($2)
 	C_TEXT:C284($3)
@@ -129,10 +147,10 @@ Function setValues  //(range:TEXT ; valuesObject: Object ; valueInputOption:Text
 	C_TEXT:C284($5)
 	C_TEXT:C284($6)
 	
-	  //<mandatory parameters>
+	//<mandatory parameters>
 	$rangeString:=This:C1470._queryRange($1)
 	$queryString:="?valueInputOption="+$3  // going to have at least one query parameter, the valuesInputOption
-	  //</mandatory parameters>
+	//</mandatory parameters>
 	
 	
 	$appendSymbol:=""  // only append with ampersand if both params are defined
@@ -159,7 +177,7 @@ Function setValues  //(range:TEXT ; valuesObject: Object ; valueInputOption:Text
 		"&responseValueRenderOption="+$responseValueRenderOption+"&"+\
 		"&responseDateTimeRenderOption="+$responseDateTimeRenderOption
 	
-	  //</handle params>
+	//</handle params>
 	
 	$url:=This:C1470.endpoint+This:C1470.spreadsheetID+"/values/"+$rangeString+$queryString
 	C_OBJECT:C1216($oResult)
@@ -167,20 +185,20 @@ Function setValues  //(range:TEXT ; valuesObject: Object ; valueInputOption:Text
 	This:C1470.status:=$oResult.status
 	This:C1470.sheetData:=$oResult.value
 	
-	If (This:C1470.status#200)
+	If (This:C1470.status#200)  // fail
 		$0:=Null:C1517
-	Else   //fail‘
+	Else   //ok
 		$0:=This:C1470.sheetData
 	End if   //$status#200
 	
-	  // ===============================================================================================================
+	// ===============================================================================================================
 	
-	  //                                        P R I V A T E   F U N C T I O N S
+	//                                        P R I V A T E   F U N C T I O N S
 	
-	  // ===============================================================================================================
+	// ===============================================================================================================
 	
 Function _getSheetIDFromURL  //url:text
-	  // accepts a url and extracts the ID of the sheet from that
+	// accepts a url and extracts the ID of the sheet from that
 	$found:=Match regex:C1019("(?<=[#&]gid=)([0-9]+)";$1;1;$foundAt;$length)
 	If (Not:C34($found))
 		$0:=""
@@ -188,10 +206,10 @@ Function _getSheetIDFromURL  //url:text
 		$0:=Substring:C12($1;$foundAt;$length)
 	End if   //(not($found))
 	
-	  // _______________________________________________________________________________________________________________
+	// _______________________________________________________________________________________________________________
 	
 Function _getSSIDFromURL  //url:text
-	  // accepts a url and extracts the ID of the sheet from that
+	// accepts a url and extracts the ID of the sheet from that
 	C_TEXT:C284($1)
 	$found:=Match regex:C1019("(?<=/spreadsheets/d/)([a-zA-Z0-9-_]+)";$1;1;$foundAt;$length)
 	If (Not:C34($found)
@@ -200,11 +218,11 @@ Function _getSSIDFromURL  //url:text
 		$0:=Substring:C12($1;$foundAt;$length)
 	End if   //(not($found))
 	
-	  // _______________________________________________________________________________________________________________
+	// _______________________________________________________________________________________________________________
 	
 Function _loadIfNotLoaded  //   ( )  -> sheetWasNotLoaded :boolean
-	  // make sure sheet has been loaded for operations that just use already-loaded data.
-	  // return whether or not the sheet was already loaded
+	// make sure sheet has been loaded for operations that just use already-loaded data.
+	// return whether or not the sheet was already loaded
 	
 	$0:=False:C215  //reloaded
 	If (This:C1470.sheetData=Null:C1517)
@@ -212,13 +230,13 @@ Function _loadIfNotLoaded  //   ( )  -> sheetWasNotLoaded :boolean
 		This:C1470.load()
 	End if 
 	
-	  // _______________________________________________________________________________________________________________
+	// _______________________________________________________________________________________________________________
 	
 Function _queryRange  //(rangeString:text)
-	  //turns a range string into a query-capable string
-	  // 1. replaces colons with %3A
-	  // 2. removes all spaces
-	  // 3. handles comma-separated compound ranges
+	//turns a range string into a query-capable string
+	// 1. replaces colons with %3A
+	// 2. removes all spaces
+	// 3. handles comma-separated compound ranges
 	C_TEXT:C284($1;$0)
 	$0:=""
 	If ($1#"")
@@ -228,90 +246,91 @@ Function _queryRange  //(rangeString:text)
 		$0:=Replace string:C233($0;" ";"")
 	End if 
 	
-	  // ===============================================================================================================
 	
-	  //                         G O O G L E    S H E E T S    A P I    T O    I M P L E M E N T
+	// ===============================================================================================================
 	
-	  // ===============================================================================================================
+	//                         G O O G L E    S H E E T S    A P I    T O    I M P L E M E N T
+	
+	// ===============================================================================================================
 	
 	
 Function _developerMetadata_get
-	  //GET/v4/spreadsheets/{spreadsheetId}/developerMetadata/{metadataId}
-	  //Returns the developer metadata with the specified ID.
+	//GET/v4/spreadsheets/{spreadsheetId}/developerMetadata/{metadataId}
+	//Returns the developer metadata with the specified ID.
 	
-	  // _______________________________________________________________________________________________________________
+	// _______________________________________________________________________________________________________________
 	
 Function _developerMetadata_search
-	  //POST/v4/spreadsheets/{spreadsheetId}/developerMetadata:search
-	  //Returns all developer metadata matching the specified DataFilter.
+	//POST/v4/spreadsheets/{spreadsheetId}/developerMetadata:search
+	//Returns all developer metadata matching the specified DataFilter.
 	
-	  // _______________________________________________________________________________________________________________
+	// _______________________________________________________________________________________________________________
 	
 Function _ss_batchUpdate
-	  //POST/v4/spreadsheets/{spreadsheetId}:batchUpdate
-	  //Applies one or more updates to the spreadsheet.
+	//POST/v4/spreadsheets/{spreadsheetId}:batchUpdate
+	//Applies one or more updates to the spreadsheet.
 	
-	  // _______________________________________________________________________________________________________________
+	// _______________________________________________________________________________________________________________
 	
 Function _ss_create
-	  //POST/v4/spreadsheets
-	  //Creates a spreadsheet, returning the newly created spreadsheet.
-	  // _______________________________________________________________________________________________________________
+	//POST/v4/spreadsheets
+	//Creates a spreadsheet, returning the newly created spreadsheet.
+	// _______________________________________________________________________________________________________________
 	
 	
 Function _ss_getByDataFilter
-	  //POST/v4/spreadsheets/{spreadsheetId}:getByDataFilter
-	  //Returns the spreadsheet at the given ID.
+	//POST/v4/spreadsheets/{spreadsheetId}:getByDataFilter
+	//Returns the spreadsheet at the given ID.
 	
-	  // _______________________________________________________________________________________________________________
+	// _______________________________________________________________________________________________________________
 	
 Function _ss_values_append
-	  //POST/v4/spreadsheets/{spreadsheetId}/values/{range}:append
-	  //Appends values to a spreadsheet.
+	//POST/v4/spreadsheets/{spreadsheetId}/values/{range}:append
+	//Appends values to a spreadsheet.
 	
-	  // _______________________________________________________________________________________________________________
+	// _______________________________________________________________________________________________________________
 	
 Function _ss_values_batchClear
-	  // POST/v4/spreadsheets/{spreadsheetId}/values:batchClear
-	  //Clears one or more ranges of values from a spreadsheet.
+	// POST/v4/spreadsheets/{spreadsheetId}/values:batchClear
+	//Clears one or more ranges of values from a spreadsheet.
 	
-	  // _______________________________________________________________________________________________________________
+	// _______________________________________________________________________________________________________________
 	
 Function _ss_values_batchClearByDataFilter
-	  //POST/v4/spreadsheets/{spreadsheetId}/values:batchClearByDataFilter
-	  //Clears one or more ranges of values from a spreadsheet.
+	//POST/v4/spreadsheets/{spreadsheetId}/values:batchClearByDataFilter
+	//Clears one or more ranges of values from a spreadsheet.
 	
-	  // _______________________________________________________________________________________________________________
+	// _______________________________________________________________________________________________________________
 	
 Function _ss_values_batchGet
-	  // GET/v4/spreadsheets/{spreadsheetId}/values:batchGet
-	  //Returns one or more ranges of values from a spreadsheet.
+	// GET/v4/spreadsheets/{spreadsheetId}/values:batchGet
+	//Returns one or more ranges of values from a spreadsheet.
 	
-	  // _______________________________________________________________________________________________________________
+	// _______________________________________________________________________________________________________________
 	
 Function _ss_values_batchGetByDataFilter
-	  //POST/v4/spreadsheets/{spreadsheetId}/values:batchGetByDataFilter
-	  //Returns one or more ranges of values that match the specified data filters.
+	//POST/v4/spreadsheets/{spreadsheetId}/values:batchGetByDataFilter
+	//Returns one or more ranges of values that match the specified data filters.
 	
-	  // _______________________________________________________________________________________________________________
+	// _______________________________________________________________________________________________________________
 	
 Function _ss_values_batchUpdate
-	  //POST/v4/spreadsheets/{spreadsheetId}/values:batchUpdate
-	  //Sets values in one or more ranges of a spreadsheet.
+	//POST/v4/spreadsheets/{spreadsheetId}/values:batchUpdate
+	//Sets values in one or more ranges of a spreadsheet.
 	
-	  // _______________________________________________________________________________________________________________
+	// _______________________________________________________________________________________________________________
 	
 Function _ss_values_batchUpdateByDataFilter
-	  //POST/v4/spreadsheets/{spreadsheetId}/values:batchUpdateByDataFilter
-	  //Sets values in one or more ranges of a spreadsheet.
+	//POST/v4/spreadsheets/{spreadsheetId}/values:batchUpdateByDataFilter
+	//Sets values in one or more ranges of a spreadsheet.
 	
-	  // _______________________________________________________________________________________________________________
+	// _______________________________________________________________________________________________________________
 	
 Function _ss_values_clear
-	  //POST/v4/spreadsheets/{spreadsheetId}/values/{range}:clear
-	  //Clears values from a spreadsheet.
+	//POST/v4/spreadsheets/{spreadsheetId}/values/{range}:clear
+	//Clears values from a spreadsheet.
 	
-	  // _______________________________________________________________________________________________________________
+	// _______________________________________________________________________________________________________________
 	
 	
-	  // ===============================================================================================================
+	// ===============================================================================================================

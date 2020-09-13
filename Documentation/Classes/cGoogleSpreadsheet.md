@@ -1,4 +1,5 @@
-﻿# Class cGoogleSpreadsheet
+﻿
+# Class cGoogleSpreadsheet
 ## Description
 Class for accessing and updating google sheets.
 Extends *cGoogleComms*, **but** there should be at least one *cGoogleComms* object created separately that will be the "master".  Authorization header data should be copied from that object to the others.  Authorization headers should be checked periodically to see if they have expired or have been revoked, and then the new data shared after the authorization is renewed.
@@ -15,7 +16,7 @@ Extends *cGoogleComms*, **but** there should be at least one *cGoogleComms* obje
 ```4d
 C_OBJECT(s)
 If (OB Is empty (s))
-	s:=cs.cGoogleSpreadsheet.new(oGoogleComms;$url)
+  s:=cs.cGoogleSpreadsheet.new(oGoogleComms;$url)
 End if
 ```
 
@@ -66,8 +67,8 @@ Implements [Spreadsheets.get](https://developers.google.com/sheets/api/reference
 
 Returns the spreadsheet at the given ID. The caller must specify the spreadsheet ID.
 By default, data within grids will not be returned. You can include grid data one of two ways:
-	1. Specify a field mask listing your desired fields using the fields URL parameter in HTTP
-	2. Set the includeGridData URL parameter to true. If a field mask is set, the includeGridData parameter is ignored
+  1. Specify a field mask listing your desired fields using the fields URL parameter in HTTP
+  2. Set the includeGridData URL parameter to true. If a field mask is set, the includeGridData parameter is ignored
 For large spreadsheets, it is recommended to retrieve only the specific fields of the spreadsheet that you want.
 To retrieve only subsets of the spreadsheet, use the ranges URL parameter. Multiple ranges can be specified. Limiting the range will return only the portions of the spreadsheet that intersect the requested ranges. Ranges are specified using A1 notation.
 
@@ -92,21 +93,61 @@ An object with the following fields:
 |--|--|--|
 |value.*spreadsheetId*|string|The ID of the spreadsheet.|
 |value.*properties*|object|[Overall properties of a spreadsheet.](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#SpreadsheetProperties)|
-|value.*sheets*|object|[The sheets that are part of a spreadsheet.](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/sheets#Sheet)| 	
+|value.*sheets*|object|[The sheets that are part of a spreadsheet.](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/sheets#Sheet)|  
 |value.*namedRanges*|object|[The named ranges defined in a spreadsheet.](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#NamedRange)|
 |value.*spreadsheetUrl*|string|The url of the spreadsheet.|
 |value.*developerMetadata*|object|[The developer metadata associated with a spreadsheet.](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.developerMetadata#DeveloperMetadata)|
 
 #### Examples
 ```4d
-$oSomeObject:=ss_get()
+$oSheetData:=$ss.load("Sheet1") `This is a valid range for loading, but not for updating.
+If ($oResult#Null)
+     //success
+Else
+   $errorMessage:=$ss.parseError()
+   ALERT($errorMessage)
+End If
 ```
 ```4d
-$oSomeObject:=ss_get("Sheet1!A1:B2, Sheet2!B:B")
+$oResult:=$ss.load("Sheet1!A1:B2, Sheet2!B:B")
+If ($oResult#Null)
+     //success
+Else
+   $errorMessage:=$ss.parseError()
+   ALERT($errorMessage)
+End If
+
 ```
 ```4d
-$oSomeObject:=ss_get(;True)
+$oResult:=$ss.load(;True)`This is a valid range for loading, but not for updating.
+If ($oResult#Null)
+     //success
+Else
+   $errorMessage:=$ss.parseError()
+   ALERT($errorMessage)
+End If
+
 ```
+### parseError()
+Parses an (undocumented) Error Object as a multiple-line text variable
+
+Currently, those lines are:
+**Code:**
+**Status:**
+**Message:**
+
+#### Example:
+```4d
+$oResult:=$ss.load("Sheet1")
+If ($oResult#Null)
+     //success
+Else
+   $errorMessage:=$ss.parseError()
+   ALERT($errorMessage)
+End If
+```
+
+
 
 ### setValues (range:TEXT ;  values:Object {;valueInputOption:TEXT ; includeValuesInResponse: Boolean ; responseValueRenderOption:TEXT; responseDateTimeRenderOption:TEXT}) -> Object
 Implements [Spreadsheet.values.update](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/update)
@@ -146,16 +187,32 @@ An object with the following fields:
 
 #### Examples
 ```4d
-$oResult:=ss_values_update("Sheet1!A1:B4";$oValues)
-If ($oResult.status=200)
-	//success
-end If
+$oResult:=$ss.setValues("Sheet1!A1:B4";$oValues)
+If ($oResult#Null)
+     //success
+Else
+   $errorMessage:=$ss.parseError()
+   ALERT($errorMessage)
+End If
 ```
 ```4d
-$oResult:=ss_values_update("Sheet1!A1:B2";$oValues;"USER_ENTERED";True;"UNFORMATTED_VALUE";"FORMATTED_STRING")
-If ($oResult.status=200)
-	//success
-end If
+$oResult:=$ss.setValues("Sheet1!A1:B2";$oValues;"USER_ENTERED";True;"UNFORMATTED_VALUE";"FORMATTED_STRING")
+If ($oResult#Null)
+     //success
+Else
+   $errorMessage:=$ss.parseError()
+   ALERT($errorMessage)
+End If
+```
+
+```4d
+$oResult:=$ss.setValues($ss.sheetData.range;$oValues;"USER_ENTERED";True;"UNFORMATTED_VALUE";"FORMATTED_STRING")  // can get the range from the sheetData.range property.
+If ($oResult#Null)
+     //success
+Else
+   $errorMessage:=$ss.parseError()
+   ALERT($errorMessage)
+End If
 ```
 
 ## Internal Structure
