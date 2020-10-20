@@ -1,5 +1,5 @@
-  // handles all the authentication...stuff.
-  // Should be instantiated as a process object and therefore shared b/c tokens will periodically expire
+// handles all the authentication...stuff.
+// Should be instantiated as a process object and therefore shared b/c tokens will periodically expire
 
 Class extends cGoogleComms
 
@@ -8,8 +8,8 @@ Class constructor  //(username:text, scopes:text, googleKey:text; connectionMeth
 	C_TEXT:C284($1;$2;$3;$4)
 	Super:C1705($4)
 	
-	  //<constants>
-	  //<auth>
+	//<constants>
+	//<auth>
 	This:C1470.expiresIn:=3600  //seconds
 	This:C1470.oHead:=New object:C1471("alg";"RS256";"typ";"JWT")
 	This:C1470.url:="https://oauth2.googleapis.com/token"
@@ -18,42 +18,42 @@ Class constructor  //(username:text, scopes:text, googleKey:text; connectionMeth
 	This:C1470.access.header:=New object:C1471()
 	This:C1470.access.header.name:="Authorization"
 	This:C1470.access.header.value:=""  //gets assigned later.  this is just a placeholder
-	  //</auth>
+	//</auth>
 	
-	  //<JWT>
+	//<JWT>
 	This:C1470.jwt:=New object:C1471()
 	This:C1470.jwt.endpoint:="https://oauth2.googleapis.com/token"
 	This:C1470.jwt.grantType:="urn:ietf:params:oauth:grant-type:jwt-bearer"
 	This:C1470.jwt.header:=New object:C1471()
 	This:C1470.jwt.header.name:="Content-Type"
 	This:C1470.jwt.header.value:="application/x-www-form-urlencoded"
-	  //</JWT>
-	  //</constants>
+	//</JWT>
+	//</constants>
 	
 	
-	  //<handle params>
+	//<handle params>
 	This:C1470.username:=$1
 	This:C1470.scopes:=$2
 	This:C1470.googleKey:=JSON Parse:C1218($3)
-	  //</handle params>
+	//</handle params>
 	
 	
-	  //<initialize properties>
+	//<initialize properties>
 	This:C1470.access.expiresAt:=Current time:C178
 	This:C1470.access.token:=New object:C1471()
-	  //</initialize properties>
+	//</initialize properties>
 	
 	
 	This:C1470.getHeader()  //initialize
 	
-	  // ===============================================================================================================
+	// ===============================================================================================================
 	
 	
 Function getHeader  //{forceRefresh:boolean}
-	  // returns header object to be used on subsequent calls or null
-	  // retrieves a fresh access token if old one expired
+	// returns header object to be used on subsequent calls or null
+	// retrieves a fresh access token if old one expired
 	
-	  //<force refresh?>
+	//<force refresh?>
 	C_BOOLEAN:C305($1)  // force refresh
 	$forceRefresh:=False:C215
 	If (Count parameters:C259>0)
@@ -63,7 +63,7 @@ Function getHeader  //{forceRefresh:boolean}
 	If ($forceRefresh)
 		This:C1470.access.expiresAt:=0
 	End if 
-	  //</force refresh?>
+	//</force refresh?>
 	
 	
 	$now:=Milliseconds:C459
@@ -72,11 +72,11 @@ Function getHeader  //{forceRefresh:boolean}
 	Else   // request another token
 		
 		
-		  //<build jwt/assertion>
+		//<build jwt/assertion>
 		C_OBJECT:C1216($ojwt)
 		$ojwt:=New object:C1471()
 		
-		  //<build jwt>
+		//<build jwt>
 		$ojwt.iss:=This:C1470.googleKey.client_email
 		$ojwt.scope:=This:C1470.scopes
 		$ojwt.aud:=This:C1470.googleKey.token_uri
@@ -86,28 +86,25 @@ Function getHeader  //{forceRefresh:boolean}
 		$ojwt.endpoint:=This:C1470.jwt.endpoint
 		$ojwt.grantType:=This:C1470.jwt.grantType
 		$ojwt.kid:=This:C1470.googleKey.private_key_id
-		  //</build jwt>
+		//</build jwt>
 		
-		  //<debugx>
-		$x:=JSON Stringify:C1217(This:C1470.oHead)
-		$y:=JSON Stringify:C1217($ojwt)
-		$assertion:=JWT Sign (JSON Stringify:C1217(This:C1470.oHead);JSON Stringify:C1217($ojwt);This:C1470.googleKey.private_key)
-		  //</build jwt/assertion>
+		$assertion:=JWT Sign(JSON Stringify:C1217(This:C1470.oHead);JSON Stringify:C1217($ojwt);This:C1470.googleKey.private_key)
+		//</build jwt/assertion>
 		
 		
 		$body:=This:C1470.bodyPrefix+$assertion
 		
-		  //<get the access token>
+		//<get the access token>
 		C_OBJECT:C1216($oResult)
 		$oResult:=This:C1470._http(HTTP POST method:K71:2;This:C1470.url;$body;This:C1470.jwt.header)
 		This:C1470.status:=$oResult.status
 		This:C1470.access.token:=$oResult.value
-		  //</get the access token>
+		//</get the access token>
 		
 		
-		  //<headers to be used in subsequent calls.  token is embedded in the header>
+		//<headers to be used in subsequent calls.  token is embedded in the header>
 		This:C1470.access.header.value:=This:C1470.access.token.token_type+" "+This:C1470.access.token.access_token
-		  //</headers to be used in subsequent calls.  token is embedded in the header>
+		//</headers to be used in subsequent calls.  token is embedded in the header>
 		
 		C_OBJECT:C1216($0)
 		
@@ -119,7 +116,7 @@ Function getHeader  //{forceRefresh:boolean}
 		End if   //status#200
 	End if   //(($now<=This.access.expiresAt)
 	
-	  // _______________________________________________________________________________________________________________
+	// _______________________________________________________________________________________________________________
 	
 Function _Unix_Timestamp
 	C_LONGINT:C283($0;$time)
@@ -175,7 +172,7 @@ Function _Unix_Timestamp
 	
 	$0:=$time
 	
-	  // _______________________________________________________________________________________________________________
+	// _______________________________________________________________________________________________________________
 	
 Function _URL_Escape
 	C_TEXT:C284($1;$0;$escaped)
@@ -217,8 +214,8 @@ Function _URL_Escape
 	
 	$0:=$escaped
 	
-	  // _______________________________________________________________________________________________________________
+	// _______________________________________________________________________________________________________________
 	
 	
-	  // _______________________________________________________________________________________________________________
+	// _______________________________________________________________________________________________________________
 	

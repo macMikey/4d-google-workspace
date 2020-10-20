@@ -1,8 +1,15 @@
-﻿# Class cGoogleAuth
+# Class cGoogleAuth
+
+
+
 ## Description
-Manages the authorization and ongoing access with Google.
-Extends the cGoogleComms class.
 There should be a single *cGoogleAuth* object for your app, which will then be passed to other classes such as spreadsheets.
+
+Extends the cGoogleComms class.
+
+Manages the authorization and ongoing access with Google.
+
+
 
 ## Constructor Parameters
 
@@ -12,7 +19,8 @@ There should be a single *cGoogleAuth* object for your app, which will then be p
 |Username|Text|Yes|Required|Username to act on behalf of|
 |Scopes|Text|Yes|Required|**Space-Delimited** scopes to use|
 |Key|Text|Yes|Required|The text of the API key granted by Google|
-|Connection Method<br>***Not Implemented Yet***|Text|No|*native*|**native** - use 4D's HTTP methods<br>**curl** - use [libCurl plugin](https://github.com/miyako/4d-plugin-curl-v2)<br>**itk** - use [itk plugin](https://www.e-node.net/en/P5/Internet-ToolKit.html)<br>**ntk** - use [ntk plugin](https://www.pluggers.nl/product/ntk-plugin/)
+|Connection Method<br/>***Not Implemented Yet***|Text|No|*native*|**native** - use 4D's HTTP methods<br/>**curl** - use [libCurl plugin](https://github.com/miyako/4d-plugin-curl-v2)<br/>**itk** - use [itk plugin](https://www.e-node.net/en/P5/Internet-ToolKit.html)<br/>**ntk** - use [ntk plugin](https://www.pluggers.nl/product/ntk-plugin/)|
+
 
 ## Constructor Example
 

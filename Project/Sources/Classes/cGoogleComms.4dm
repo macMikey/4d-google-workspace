@@ -1,14 +1,14 @@
-  // handles all comms with google.
+// handles all comms with google.
 
 Class constructor  // ({connectionMethod : text } )
 	
 	This:C1470.connectionMethod:=$1
 	
 	
-	  // ===============================================================================================================
+	// ===============================================================================================================
 	
 Function _http  // (http_method:TEXT ; url:TEXT; body:TEXT; header:object)
-	  // returns an object with properties  status:TEXT ; value:TEXT
+	// returns an object with properties  status:TEXT ; value:TEXT
 	C_TEXT:C284($1;$2;$3)
 	C_OBJECT:C1216($4)
 	
@@ -31,5 +31,4 @@ Function _http  // (http_method:TEXT ; url:TEXT; body:TEXT; header:object)
 			$0:=Null:C1517
 	End case 
 	
-	  // _______________________________________________________________________________________________________________
-	
+	// _______________________________________________________________________________________________________________

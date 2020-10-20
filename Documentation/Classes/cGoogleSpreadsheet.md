@@ -1,8 +1,13 @@
-﻿
 # Class cGoogleSpreadsheet
+
+
+
 ## Description
 Class for accessing and updating google sheets.
+
 Extends *cGoogleComms*, **but** there should be at least one *cGoogleComms* object created separately that will be the "master".  Authorization header data should be copied from that object to the others.  Authorization headers should be checked periodically to see if they have expired or have been revoked, and then the new data shared after the authorization is renewed.
+
+
 
 ## Constructor Parameters
 
@@ -10,6 +15,8 @@ Extends *cGoogleComms*, **but** there should be at least one *cGoogleComms* obje
 |--|--|--|
 |cGoogleAuth|object|Object obtained from a *cGoogleComms* class via **getAuthAccess** |
 |URL|Text|The URL of the spreadsheet you want to work with|
+
+
 
 ## Constructor Example
 
@@ -20,9 +27,84 @@ If (OB Is empty (s))
 End if
 ```
 
+
+
 ## API
 
+### duplicateSheet ( sourceSheetID:INTEGER ; insertSheetIndex:INTEGER ; {newSheetID:INTEGER} ; {newSheetName:Text} ) -> object
+
+Implements [Batch Update](https://developers.google.com/sheets/api/guides/batchupdate) with a [Duplicate Sheet Request](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#duplicatesheetrequest) to duplicate a sheet
+
+|Parameters|Required?|Datatype|Description|
+|--|--|--|--|
+|sourceSheetId|Yes|Integer|The sheet to duplicate.|
+|insertSheetIndex|Yes|Integer|The zero-based index where the new sheet should be inserted. The index of all sheets after this are incremented.|
+|newSheetId|No|Integer|If set, the ID of the new sheet. If not set, an ID is chosen. If set, the ID must not conflict with any existing sheet ID. If set, it must be non-negative.|
+|newSheetName|No|Text|The name of the new sheet. If empty, a new name is chosen for you.|
+
+
+
+#### Return object:
+
+* If no matches are found for *sheetName*, **$0** will have the following structure:
+
+  ```
+  .success : False
+  .message : "No match."
+  .matches : Null
+  ```
+
+* If one match is found, the sheet will be duplicated, and **$0** will have the following structure, [including a sheetsProperties object](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/sheets#SheetProperties):
+ ```
+  .success 										          : True
+  .message 										          : ""
+  .result 										          : (Object)
+  	.status										          : http status (200)
+  	.value									          	: (Object)
+  		.replies							          	: (Collection)
+  		   [0..n]
+  		      .duplicateSheet	    	      : (Object)
+  		         .properties	    	      : (Object)
+  		            .gridProperties       : (Object)
+  		               .columnCount       : integer
+  		               .frozenColumnCount : integer
+  		               .rowCount          : integer
+  		            .index                : integer
+  		            .sheetID							: integer
+  		            .sheetType						: text (e.g. "GRID")
+  		            .title								: text
+  		.spreadsheetID                    : text
+ ```
+
+
+#### Example:
+
+```4d
+$s.duplicateSheet($sheetID;$index;;$part.Part_Number)
+```
+
+
+
+### findSheetWithName (sheetName:TEXT) -> collection
+
+Returns a collection of sheet (tab) objects that have the name *sheetName*
+[with the following properties](https://developers.google.com/sheets/api/samples/sheet#determine_sheet_id_and_other_properties)
+
+```
+.gridProperties    : object
+   .rowCount       : number of rows
+   .columnCount    : number of columns
+   .frozenRowCount : number of frozen rows
+.index             : integer - position of the sheet (tab) in the spreadsheet
+.sheetID           : id used to reference the sheet
+.sheetType         : (add when you find out)
+.title             : name of the sheet
+```
+
+
+
 ### getSheetNames () -> sheetNames : collection
+
 1. Reloads all sheet data
 2. Returns a collection with the names of the sheets (tabs) in the spreadsheet.
 
@@ -31,7 +113,10 @@ End if
 |length|0..n - number of values in the collection|
 |0..(length-1)|Collection indicies start at 0 and run to `length-1`.  Each element in the collection is the name of a sheet (tab)|
 
+
+
 ### <a name="getValues"></a>getValues (range:TEXT {; majorDimension:TEXT ; valueRenderOption:TEXT ; dateTimeRenderOption:TEXT}) -> object
+
 Implements [Spreadsheet.values.get](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/get)
 
 1. Reloads all cell values
@@ -44,7 +129,7 @@ Implements [Spreadsheet.values.get](https://developers.google.com/sheets/api/ref
 |valueRenderOption|No|Text|*FORMATTED_VALUE*|*FORMATTED_VALUE* - Values will be calculated & formatted in the reply according to the cell's formatting. Formatting is based on the spreadsheet's locale, not the requesting user's locale. For example, if A1 is 1.23 and A2 is =A1 and formatted as currency, then A2 would return "$1.23".<br>*UNFORMATTED_VALUE* - Values will be calculated, but not formatted in the reply. For example, if A1 is 1.23 and A2 is =A1 and formatted as currency, then A2 would return the number 1.23.<br>*FORMULA* - Values will not be calculated. The reply will include the formulas. For example, if A1 is 1.23 and A2 is =A1 and formatted as currency, then A2 would return "=A1".|
 |dateTimeRenderOption|No|Text|*SERIAL_NUMBER*| Ignored if *valueRenderOption* is *FORMATTED_VALUE*.<br>*SERIAL_NUMBER* - Instructs date, time, datetime, and duration fields to be output as doubles in "serial number" format, as popularized by Lotus 1-2-3. The whole number portion of the value (left of the decimal) counts the days since December 30th 1899. The fractional portion (right of the decimal) counts the time as a fraction of the day. For example, January 1st 1900 at noon would be 2.5, 2 because it's 2 days after December 30st 1899, and .5 because noon is half a day. February 1st 1900 at 3pm would be 33.625. This correctly treats the year 1900 as not a leap year.<br>*FORMATTED_STRING* - Instructs date, time, datetime, and duration fields to be output as strings in their given number format (which is dependent on the spreadsheet locale).|
 
-#### Return object
+#### Return object:
 The object contains a [valueRange](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values#ValueRange)
 
 |Field|Contents|Description|
@@ -54,7 +139,7 @@ The object contains a [valueRange](https://developers.google.com/sheets/api/refe
 |"values"|array ([ListValue](https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#google.protobuf.ListValue) format)|The data that was read or to be written. This is an array of arrays, the outer array representing all the data and each inner array representing a major dimension. Each item in the inner array corresponds with one cell. For output, empty trailing rows and columns will not be included.|
 
 
-#### Examples
+#### Examples:
 ```4d
 $oValues:=$ss.getValues("Sheet1!A1:B4")
 ```
@@ -62,7 +147,10 @@ $oValues:=$ss.getValues("Sheet1!A1:B4")
 $oValues:=$ss.getValues("Sheet1!A1:B2";"ROWS";"UNFORMATTED_VALUE";"FORMATTED_STRING")
 ```
 
+
+
 ### load ( { range:TEXT ; includeGridData:Boolean } ) -> Object
+
 Implements [Spreadsheets.get](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/get#body.QUERY_PARAMETERS.ranges)
 
 Returns the spreadsheet at the given ID. The caller must specify the spreadsheet ID.
@@ -93,7 +181,7 @@ An object with the following fields:
 |--|--|--|
 |value.*spreadsheetId*|string|The ID of the spreadsheet.|
 |value.*properties*|object|[Overall properties of a spreadsheet.](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#SpreadsheetProperties)|
-|value.*sheets*|object|[The sheets that are part of a spreadsheet.](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/sheets#Sheet)|  
+|value.*sheets*|object|[The sheets that are part of a spreadsheet.](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/sheets#Sheet)|
 |value.*namedRanges*|object|[The named ranges defined in a spreadsheet.](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#NamedRange)|
 |value.*spreadsheetUrl*|string|The url of the spreadsheet.|
 |value.*developerMetadata*|object|[The developer metadata associated with a spreadsheet.](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.developerMetadata#DeveloperMetadata)|
@@ -128,7 +216,10 @@ Else
 End If
 
 ```
+
+
 ### parseError()
+
 Parses an (undocumented) Error Object as a multiple-line text variable
 
 Currently, those lines are:
@@ -215,7 +306,10 @@ Else
 End If
 ```
 
+
+
 ## Internal Structure
+
 #### None of the information in this section is necessary to use the class.  This is for developers who may want to modify the class and submit a PR to the repo.
 **Assume that all properties (and at least some functions) will eventually be made private (not available to be used outside of the class).  Any function that begins with underscore**  ***and all properties***  **should be considered private.**
 
@@ -228,16 +322,60 @@ End If
 |status|http status of the request|
 |sheetData|the object returned from google|
 
+
+
 ## Internal API
 
-### \_getSheetIDFromURL ( url:TEXT ) -> Text
+
+
+### _batchUpdate (request:object ; includeSpreadsheetInResponse:boolean ; responseRanges:string ; responseIncludeGridData:boolean) -> object
+
+***NOTE:  At this time, only the request parameter is implemented***
+
+Sends
+
+`POST https://sheets.googleapis.com/v4/spreadsheets/{spreadsheetId}:batchUpdate`
+
+The request body contains data with the following structure:
+
+```
+		{
+		 "requests": [
+		  {
+		   object (Request)
+		  }
+		 ],
+		 "includeSpreadsheetInResponse": boolean,
+		 "responseRanges": [
+		  string
+		 ],
+		 "responseIncludeGridData": boolean
+		}
+```
+
+#### References
+
+* https://developers.google.com/sheets/api/guides/batchupdate
+
+* https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/batchUpdate
+
+* https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request
+
+  
+
+### _getSheetIDFromURL ( url:TEXT ) -> Text
+
 Grabs the part of the url where the ID of the current sheet (tab) lives
+
+
 
 ### \_getSpreadsheetIDFromURL ( url:TEXT ) -> Text
 Grabs the part of the url where the current spreadsheet lives.  I'm not sure why we have this any longer, since none of the API requires it.
 
 ###\_loadIfNotLoaded () -> Boolean
 Loads the spreadsheet data with default options if the spreadsheet has not been loaded yet.
+
+
 
 ### \_queryRange (range:TEXT) -> Text
 Builds a range query string in A1 format for use in calls from the class
@@ -246,3 +384,7 @@ Builds a range query string in A1 format for use in calls from the class
 
 ## References
 https://developers.google.com/sheets/api/reference/rest
+
+```
+
+```

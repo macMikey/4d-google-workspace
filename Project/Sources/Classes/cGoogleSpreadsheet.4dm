@@ -7,8 +7,8 @@ Class constructor  // oGoogleAuth:object ; spreadsheet_url:text
 	C_TEXT:C284($2)
 	
 	Super:C1705("native")  //comms type
-	This:C1470.auth:=$1
-	This:C1470.spreadsheetID:=This:C1470._getSSIDFromURL($2)
+	This:C1470._auth:=$1
+	This:C1470.spreadsheetId:=This:C1470._getSSIdFromURL($2)
 	
 	//<initialize other values>
 	This:C1470.endpoint:="https://sheets.googleapis.com/v4/spreadsheets/"
@@ -19,6 +19,103 @@ Class constructor  // oGoogleAuth:object ; spreadsheet_url:text
 	//                                         P U B L I C   F U N C T I O N S
 	
 	// ===============================================================================================================
+	
+Function duplicateSheet  // ( sourceSheetId:INTEGER ; insertSheetIndex:INTEGER ; {newSheetId:INTEGER} ; {newSheetName:Text} ) -> object
+	//POST https://sheets.googleapis.com/v4/spreadsheets/{spreadsheetId}:batchUpdate
+/*
+the request body is
+{
+  "requests": [
+    {
+      "duplicateSheet": 
+         {
+           "sourceSheetId": integer,
+           "insertSheetIndex": integer,
+           "newSheetId": integer,
+           "newSheetName": string
+         }
+    }
+  ],
+  "includeSpreadsheetInResponse": boolean,
+  "responseRanges": [
+    string
+  ],
+  "responseIncludeGridData": boolean
+}
+*/
+	
+	var $1;$2;$3 : Integer
+	var $4 : Text
+	var $requestBody;$duplicateSheetRequest;$requests;$batchUpdate : Object
+	
+	//<build the duplicateSheetRequest object>
+	$duplicateSheetRequest:=New object:C1471()
+	$duplicateSheetRequest.sourceSheetId:=$1
+	
+	If (Count parameters:C259>=2)
+		$duplicateSheetRequest.insertSheetIndex:=$2
+	End if   //count parameters>=2
+	
+	If (Count parameters:C259>=3)
+		If (Not:C34(Undefined:C82($3))
+			If ($3#0)  // 0 means nope
+				$duplicateSheetRequest.newSheetId:=$3
+			End if 
+		End if   //not(undefined($3))
+	End if   //count parameters>=3
+	
+	If (Count parameters:C259)>=4)
+		$duplicateSheetRequest.newSheetName:=$4
+	End if   // count parameters>=4
+	
+	$requests:=New object:C1471()
+	$requests.duplicateSheet:=$duplicateSheetRequest
+	//</build the duplicateSheetRequest object>
+	
+	$batchUpdate:=New object:C1471()
+	$batchUpdate.requests:=New collection:C1472($requests)
+	
+	//try adding $requestBody.includeSpreadsheetInResponse:=true, too to see if that means we don't need to reload the spreadsheet //debugx
+	
+	$url:=This:C1470.endpoint+This:C1470.spreadsheetId+":batchUpdate"
+	
+	var $0;$oResult : Object
+	
+	$oResult:=This:C1470._http(HTTP POST method:K71:2;$url;JSON Stringify:C1217($batchUpdate);This:C1470._auth.getHeader())
+	This:C1470.status:=$oResult.status  //however, if we have it return the spreadsheet, set the sheetData property, too //debugx
+	
+	
+	$0:=New object:C1471()
+	
+	If (This:C1470.status=200)
+		// still need to rename it, though xxx
+		$0.success:=True:C214
+		$0.message:=""
+		$0.result:=$oResult
+	Else   //$status=200
+		$0.success:=False:C215
+		$0.message:=$oResult.status+" "+$oResult.value
+		$0.result:=$oResult
+	End if   //status=200
+	// _______________________________________________________________________________________________________________
+	
+	
+Function findSheetWithName  // sheetName:text -> collection
+	// used to search this.sheetData.Sheets[] for .properties.title = sheetName
+	// returns a collection with all of the sheets sharing that name
+	var $1;$sheetName : Text
+	var $0 : Collection
+	
+	$sheetName:=$1
+	$0:=New collection:C1472()
+	
+	For each ($sheet;This:C1470.sheetData.sheets)
+		If $sheet.properties.title=$sheetName
+			$0.push($sheet)
+		End if 
+	End for each   //($sheet;This.sheetData.sheets)
+	// _______________________________________________________________________________________________________________
+	
 	
 Function getSheetNames  //  -> sheetNameList: collection
 	// optionally reloads the sheet, first
@@ -38,11 +135,11 @@ Function getSheetNames  //  -> sheetNameList: collection
 		
 		$0:=$sheetNames
 	End if 
-	
 	// _______________________________________________________________________________________________________________
 	
+	
 Function getValues  //(range:TEXT {; majorDimension:Text ; valueRenderOption:Text ; dateTimeRenderOption:Text} )
-	// Returns a range of values from a spreadsheet. The caller must specify the spreadsheet ID and a range.
+	// Returns a range of values from a spreadsheet. The caller must specify the spreadsheet Id and a range.
 	
 	//<handle params>
 	C_TEXT:C284($1;$2;$3;$4)
@@ -69,19 +166,19 @@ Function getValues  //(range:TEXT {; majorDimension:Text ; valueRenderOption:Tex
 		"valueRenderOption="+$valueRenderOption+"&"+\
 		"dateTimeRenderOption="+$dateTimeRenderOption
 	
-	$url:=This:C1470.endpoint+This:C1470.spreadsheetID+"/values/"+$queryString
+	$url:=This:C1470.endpoint+This:C1470.spreadsheetId+"/values/"+$queryString
 	C_OBJECT:C1216($oResult)
-	$oResult:=Super:C1706._http(HTTP GET method:K71:1;$url;"";This:C1470.auth.getHeader())
+	$oResult:=Super:C1706._http(HTTP GET method:K71:1;$url;"";This:C1470._auth.getHeader())
 	This:C1470.status:=$oResult.status
 	This:C1470.sheetData:=$oResult.value
 	
 	If (This:C1470.status#200)
 		$0:=Null:C1517
-	Else   //fail
+	Else 
 		$0:=This:C1470.sheetData
 	End if   //$status#200
-	
 	// _______________________________________________________________________________________________________________
+	
 	
 Function load  // {(rangeString:text , includeGridData:boolean)}
 	// loads all spreadsheet data
@@ -105,9 +202,9 @@ Function load  // {(rangeString:text , includeGridData:boolean)}
 		"includeGridData="+$includeGridData
 	
 	
-	$url:=This:C1470.endpoint+This:C1470.spreadsheetID+$queryString
+	$url:=This:C1470.endpoint+This:C1470.spreadsheetId+$queryString
 	C_OBJECT:C1216($oResult)
-	$oResult:=Super:C1706._http(HTTP GET method:K71:1;$url;"";This:C1470.auth.getHeader())
+	$oResult:=Super:C1706._http(HTTP GET method:K71:1;$url;"";This:C1470._auth.getHeader())
 	This:C1470.status:=$oResult.status
 	This:C1470.sheetData:=$oResult.value
 	
@@ -117,8 +214,8 @@ Function load  // {(rangeString:text , includeGridData:boolean)}
 	Else   //fail
 		$0:=This:C1470.sheetData
 	End if   //$status#200
-	
 	// _______________________________________________________________________________________________________________
+	
 	
 Function parseError  //()
 	// parses an error object and returns the contents
@@ -131,8 +228,8 @@ Function parseError  //()
 			"Status: "+$oError.status+$cr+\
 			"Message: "+$oError.message
 	End if 
-	
 	// _______________________________________________________________________________________________________________
+	
 	
 Function setValues  //(range:TEXT ; valuesObject: Object ; valueInputOption:Text {; includeValuesInResponse: Boolean ; responseValueRenderOption: Text ; responseDateTimeRenderOption:Text})
 	// PUT https://sheets.googleapis.com/v4/spreadsheets/{spreadsheetId}/values/{range}
@@ -149,6 +246,7 @@ Function setValues  //(range:TEXT ; valuesObject: Object ; valueInputOption:Text
 	
 	//<mandatory parameters>
 	$rangeString:=This:C1470._queryRange($1)
+	$2.range:=$rangeString  // has to match the query range
 	$queryString:="?valueInputOption="+$3  // going to have at least one query parameter, the valuesInputOption
 	//</mandatory parameters>
 	
@@ -179,9 +277,9 @@ Function setValues  //(range:TEXT ; valuesObject: Object ; valueInputOption:Text
 	
 	//</handle params>
 	
-	$url:=This:C1470.endpoint+This:C1470.spreadsheetID+"/values/"+$rangeString+$queryString
+	$url:=This:C1470.endpoint+This:C1470.spreadsheetId+"/values/"+$rangeString+$queryString
 	C_OBJECT:C1216($oResult)
-	$oResult:=Super:C1706._http(HTTP PUT method:K71:6;$url;JSON Stringify:C1217($2);This:C1470.auth.getHeader())
+	$oResult:=Super:C1706._http(HTTP PUT method:K71:6;$url;JSON Stringify:C1217($2);This:C1470._auth.getHeader())
 	This:C1470.status:=$oResult.status
 	This:C1470.sheetData:=$oResult.value
 	
@@ -197,19 +295,42 @@ Function setValues  //(range:TEXT ; valuesObject: Object ; valueInputOption:Text
 	
 	// ===============================================================================================================
 	
-Function _getSheetIDFromURL  //url:text
-	// accepts a url and extracts the ID of the sheet from that
+	
+Function _ss_batchUpdate  // (request:object ; includeSpreadsheetInResponse:boolean ; responseRanges:string ; responseIncludeGridData:boolean) -> object
+	//POST https://sheets.googleapis.com/v4/spreadsheets/{spreadsheetId}:batchUpdate
+	//The request body contains data with the following structure:
+/*
+{
+  "requests": [
+    {
+      object (Request)
+    }
+  ],
+  "includeSpreadsheetInResponse": boolean,
+  "responseRanges": [
+    string
+  ],
+  "responseIncludeGridData": boolean
+}
+*/
+	$url:=This:C1470.endpoint+This:C1470.spreadsheetId+":batchUpdate"
+	
+	// _______________________________________________________________________________________________________________
+	
+	
+Function _getSheetIdFromURL  //url:text
+	// accepts a url and extracts the Id of the sheet from that
 	$found:=Match regex:C1019("(?<=[#&]gid=)([0-9]+)";$1;1;$foundAt;$length)
 	If (Not:C34($found))
 		$0:=""
 	Else 
 		$0:=Substring:C12($1;$foundAt;$length)
 	End if   //(not($found))
-	
 	// _______________________________________________________________________________________________________________
 	
-Function _getSSIDFromURL  //url:text
-	// accepts a url and extracts the ID of the sheet from that
+	
+Function _getSSIdFromURL  //url:text
+	// accepts a url and extracts the Id of the sheet from that
 	C_TEXT:C284($1)
 	$found:=Match regex:C1019("(?<=/spreadsheets/d/)([a-zA-Z0-9-_]+)";$1;1;$foundAt;$length)
 	If (Not:C34($found)
@@ -217,8 +338,8 @@ Function _getSSIDFromURL  //url:text
 	Else 
 		$0:=Substring:C12($1;$foundAt;$length)
 	End if   //(not($found))
-	
 	// _______________________________________________________________________________________________________________
+	
 	
 Function _loadIfNotLoaded  //   ( )  -> sheetWasNotLoaded :boolean
 	// make sure sheet has been loaded for operations that just use already-loaded data.
@@ -229,21 +350,35 @@ Function _loadIfNotLoaded  //   ( )  -> sheetWasNotLoaded :boolean
 		$0:=True:C214  //reloaded
 		This:C1470.load()
 	End if 
-	
 	// _______________________________________________________________________________________________________________
+	
 	
 Function _queryRange  //(rangeString:text)
 	//turns a range string into a query-capable string
 	// 1. replaces colons with %3A
-	// 2. removes all spaces
+	// 2. quotes all sheet names
 	// 3. handles comma-separated compound ranges
-	C_TEXT:C284($1;$0)
+	var $1;$0;$sheetPart;$cellsPart : Text
+	var $bangPos : Integer
 	$0:=""
 	If ($1#"")
 		$0:=$1
-		$0:=Replace string:C233($0;":";"%3A")  //url encode
+		//debugx when setting ranges, this breaks the range string comparison google does.  $0:=Replace string($0;":";"%3A")  //url encode
 		$0:=Replace string:C233($0;",";"&ranges=")  // A1:B1,C1 becomes ranges=A1:B1&ranges=C1
-		$0:=Replace string:C233($0;" ";"")
+		//<quote the sheet name so names with spaces will be ok>
+		$bang:="!"  // for searching and then for appending, later, if it's actually in the string
+		$bangPos:=Position:C15($bang;$0)
+		If ($bangPos=0)
+			$bang:=""  // not in the string, so don't append it, later
+			$bangPos:=Length:C16($0)+1
+		End if   //$bangPos=0
+		$sheetPart:=Substring:C12($0;1;($bangPos-1))  // beginning until just before the bang
+		$cellsPart:=Substring:C12($0;($bangPos+1);Length:C16($0))
+		If (($sheetPart[[1]]#"'") & ($sheetPart[[Length:C16($sheetPart)]]#"'"))  // sheet name isn't already quoted
+			$sheetPart:="'"+$sheetPart+"'"  // surround the sheet name with single quotes so we don't have to worry about spaces
+		End if 
+		$0:=$sheetPart+$bang+$cellsPart  // put it back together
+		//</quote the sheet name so names with spaces will be ok>
 	End if 
 	
 	
@@ -256,20 +391,12 @@ Function _queryRange  //(rangeString:text)
 	
 Function _developerMetadata_get
 	//GET/v4/spreadsheets/{spreadsheetId}/developerMetadata/{metadataId}
-	//Returns the developer metadata with the specified ID.
-	
+	//Returns the developer metadata with the specified Id.
 	// _______________________________________________________________________________________________________________
 	
 Function _developerMetadata_search
 	//POST/v4/spreadsheets/{spreadsheetId}/developerMetadata:search
 	//Returns all developer metadata matching the specified DataFilter.
-	
-	// _______________________________________________________________________________________________________________
-	
-Function _ss_batchUpdate
-	//POST/v4/spreadsheets/{spreadsheetId}:batchUpdate
-	//Applies one or more updates to the spreadsheet.
-	
 	// _______________________________________________________________________________________________________________
 	
 Function _ss_create
@@ -280,7 +407,7 @@ Function _ss_create
 	
 Function _ss_getByDataFilter
 	//POST/v4/spreadsheets/{spreadsheetId}:getByDataFilter
-	//Returns the spreadsheet at the given ID.
+	//Returns the spreadsheet at the given Id.
 	
 	// _______________________________________________________________________________________________________________
 	
