@@ -53,21 +53,16 @@ Function getHeader  //{forceRefresh:boolean}
 	// returns header object to be used on subsequent calls or null
 	// retrieves a fresh access token if old one expired
 	
-	//<force refresh?>
 	C_BOOLEAN:C305($1)  // force refresh
 	$forceRefresh:=False:C215
 	If (Count parameters:C259>0)
 		$forceRefresh:=$1
 	End if 
 	
-	If ($forceRefresh)
-		This:C1470.access.expiresAt:=0
-	End if 
-	//</force refresh?>
 	
 	
 	$now:=Milliseconds:C459
-	If ($now<=This:C1470.access.expiresAt)  //token is still current
+	If ($now<=This:C1470.access.expiresAt) & Not:C34($forceRefresh))  //token is still current
 		$0:=This:C1470.access.header
 	Else   // request another token
 		
@@ -111,10 +106,16 @@ Function getHeader  //{forceRefresh:boolean}
 		If (This:C1470.status#200)
 			$0:=Null:C1517
 		Else   //$status=200
-			This:C1470.access.expiresAt:=$now+(This:C1470.access.token.expires_in*1000)  //get to milliseconds to compare to system clock
+			//<determine sign of the milliseconds>
+			$multiplier:=1
+			If ($now<0)
+				$multiplier:=-1
+			End if   //$now<0
+			//</determine the sign of the milliseconds>
+			This:C1470.access.expiresAt:=$now+($multiplier*This:C1470.access.token.expires_in*1000)  //get to milliseconds to compare to system clock
 			$0:=This:C1470.access.header  //return the entire object
 		End if   //status#200
-	End if   //(($now<=This.access.expiresAt)
+	End if   //(abs($now)<=abs(This.access.expiresAt)) & not($forceRefresh))
 	
 	// _______________________________________________________________________________________________________________
 	

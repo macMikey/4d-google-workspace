@@ -142,7 +142,8 @@ Function getValues  //(range:TEXT {; majorDimension:Text ; valueRenderOption:Tex
 	// Returns a range of values from a spreadsheet. The caller must specify the spreadsheet Id and a range.
 	
 	//<handle params>
-	C_TEXT:C284($1;$2;$3;$4)
+	var $1;$2;$3;$4 : Text
+	var $oResult : Object
 	$queryString:=This:C1470._queryRange($1)  //e.g. 28d738fdhd3v83a/values/Sheet1!A1:B2
 	
 	$majorDimension:="DIMENSION_UNSPECIFIED"
@@ -167,8 +168,12 @@ Function getValues  //(range:TEXT {; majorDimension:Text ; valueRenderOption:Tex
 		"dateTimeRenderOption="+$dateTimeRenderOption
 	
 	$url:=This:C1470.endpoint+This:C1470.spreadsheetId+"/values/"+$queryString
-	C_OBJECT:C1216($oResult)
 	$oResult:=Super:C1706._http(HTTP GET method:K71:1;$url;"";This:C1470._auth.getHeader())
+	If (OB Is defined:C1231($oResult.value;"error"))  // error occurred
+		If (($oResult.value.error.code=401) & ($oResult.value.error.status="UNAUTHENTICATED"))  //token expired, try again with a forced refresh on the token
+			$oResult:=Super:C1706._http(HTTP GET method:K71:1;$url;"";This:C1470._auth.getHeader(True:C214))
+		End if   //($oResult.value.error.code=401) & ($oResult.value.error.status="UNAUTHENTICATED")
+	End if   //(ob is defined($oResult.value.error))
 	This:C1470.status:=$oResult.status
 	This:C1470.sheetData:=$oResult.value
 	

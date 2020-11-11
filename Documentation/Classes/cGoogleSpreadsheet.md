@@ -384,7 +384,3 @@ Builds a range query string in A1 format for use in calls from the class
 
 ## References
 https://developers.google.com/sheets/api/reference/rest
-
-```
-
-```
