@@ -1,11 +1,11 @@
-# Class cGoogleAuth
+# Class auth
 
 
 
 ## Description
-There should be a single *cGoogleAuth* object for your app, which will then be passed to other classes such as spreadsheets.
+There should be a single *cs.google.auth* object for your app, which will then be passed to other classes such as spreadsheets.
 
-Extends the cGoogleComms class.
+Extends the **_comms** class.
 
 Manages the authorization and ongoing access with Google.
 
@@ -22,25 +22,32 @@ Manages the authorization and ongoing access with Google.
 |Connection Method<br/>***Not Implemented Yet***|Text|No|*native*|**native** - use 4D's HTTP methods<br/>**curl** - use [libCurl plugin](https://github.com/miyako/4d-plugin-curl-v2)<br/>**itk** - use [itk plugin](https://www.e-node.net/en/P5/Internet-ToolKit.html)<br/>**ntk** - use [ntk plugin](https://www.pluggers.nl/product/ntk-plugin/)|
 
 
-## Constructor Example
+
+### Constructor Example
 
 ```4d
-C_OBJECT(oGoogleAuth)
+var oGoogleAuth : Object
+$scopes:="https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/calendar"
 If (OB Is empty ($oGoogleAuth))
-	$oGoogleAuth:=cs.cGoogleAuth.new($username;$scopes;$key;"native")
+	$oGoogleAuth:=cs.cs.google.auth.new($username;$scopes;$key;"native")
 End if
 ```
+
+
+
 ## Using Comms With Multiple Docs Simultaneously
-The *cGoogleComms* object is designed to be independent of other objects.  Before you create your other objects, you will create the cGoogleAuth object, and then pass it to each of your other objects.
-When those objects wish to send a request to Google, they will obtain the current authorization information from the *cGoogleAuth* class to send with the request.  If the authorization/access information is stale or has expired, the object will refresh it before processing your request.
-In the event that an access token expires unexpectedly, you can force the *cGoogleAuth* object to refresh the token.
-To pass the authorization/access information to a class, simply use the name of the *cGoogleAuth* object.
+
+The *comms* object is designed to be independent of other objects.  Before you create your other objects, you will create the cs.google.auth object, and then pass it to each of your other objects.
+When those objects wish to send a request to Google, they will obtain the current authorization information from the *cs.google.auth* class to send with the request.  If the authorization/access information is stale or has expired, the object will refresh it before processing your request.
+In the event that an access token expires unexpectedly, you can force the *cs.google.auth* object to refresh the token.
+To pass the authorization/access information to a class, simply use the name of the *cs.google.auth* object.
 
 #### Example: ####
 ```4d
-$oGoogleAuth:=cs.cGoogleAuth.new($username;$scopes;$key;"native")
-$oGoogleSpreadsheet:=cs.cGoogleSpreadsheet.new($oGoogleAuth;$url)
+$oGoogleAuth:=cs.google.auth.new($username;$scopes;$key;"native")
+$oGoogleSpreadsheet:=cs.google.spreadsheet.new($oGoogleAuth;$url)
 ```
+
 
 
 ## API
@@ -52,7 +59,21 @@ You should generally not need to call this function.  This is designed to be use
 |--|--|--|--|--|
 |forceRefresh|No|Boolean|*False*|Whether to force refresh even if the token has not expired (e.g. when an authorization error is returned by google|
 
+If there is an error, the **error** property will have the following structure:
+
+```
+.error
+   .status            : http status code
+   .error             : error message
+   .error_description : more information about the error
+```
+
+
+
+
+
 ## Internal Properties
+
 #### None of the information in this section is necessary to use the class.  This is for developers who may want to modify the class and submit a PR to the repo.
 **Assume that all properties (and at least some functions) will eventually be made private (not available to be used outside of the class).  Any function that begins with underscore**  ***and all properties***  **should be considered private.**
 

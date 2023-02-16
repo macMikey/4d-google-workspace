@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?><preferences stamp="3">
+	<com.4d>
+		<general component_classStore_name="google"/>
+		<compiler>
+			<options syntax_file="true"/>
+		</compiler>
+	</com.4d>
+</preferences>
