@@ -2,6 +2,21 @@
 
 
 
+## 0.2.0 02/25/23
+
+* drive
+  * Added driveFile and driveFiles classes with initial functionality
+* sheets
+  * added copySheetToSpreadsheet
+     * added createSpreadsheet
+     * added renameSheet
+* General
+  * Updated docs
+  * Squashed Bugs
+  * Compiled to update syntax file
+
+
+
 ## 0.1.0 02/16/23
 
 * General

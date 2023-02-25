@@ -1,18 +1,14 @@
 # Class calendar
 
-
-
-## Description
-
 Class for accessing, creating, and maniuplating google calendars and events.
 
-Extends the *_comms* class, **but** there should be at least one **_comms** object created separately that will be the "master".  Authorization header data should be copied from that object to the others.  Authorization headers should be checked periodically to see if they have expired or have been revoked, and then the new data shared after the authorization is renewed.
+Extends the *_comms* class.
+
+Wherever appropriate, I have copied/pasted information directly from Google's documentation. In some cases I have paraphrased or rewritten for clarity.
 
 
 
 ## Contents
-
-[Additional Prerequisites](#additional-prerequisites)
 
 [Constructor Parameters](#constructor-parameters)
 
@@ -43,12 +39,6 @@ Extends the *_comms* class, **but** there should be at least one **_comms** obje
 [Internal API](#internal-api)
 
 [References](#references)
-
-
-
-## Additional Prerequisites
-
-In addition to the other steps described in the **auth** documentation, you need to create an API Key to use the Google Calendar API.  You can create an API key on the [Credentials page in the Google Cloud Platform Console](https://console.cloud.google.com/apis/credentials).  The API Key must be provided to the constructor when you create the calendar object.
 
 
 

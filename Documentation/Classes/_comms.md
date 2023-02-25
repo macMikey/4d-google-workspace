@@ -1,10 +1,8 @@
-# Class _comms
+# (Private) Class _comms
 
+This class is private, and is not directly accessible outside of the component. It is documented in the event that a developer wishes to work on the component, and issue a pull request back to the project repo.
 
-
-## Description
-
-Handles all the comms with google.  This is intended to be a private library for use by those classes.  All other google classes extend this one.
+_Comms handles all the comms with google.  All other google classes extend this one.
 
 
 
@@ -51,10 +49,13 @@ End if
 ```
 
 
-## Internal API
-As this is inended to be private and extended by other google classes, the API is also "internal", i.e. not intended for use outside of the google library
 
-### \_http ( httpMethod:longint ; url:TEXT ; body: text header:object) -> Object
+## API
+
+
+
+### http ( httpMethod:longint ; url:TEXT ; body: text header:object) -> Object
+
 Executes an http call and returns an object containing the server's response and the status returned from the server.  The idea is to enable support for libCurl, ntk, or native 4D http calls by wrapping all of it.
 
 |Parameter Name|Required?|Parameter Type|Default|Description|
@@ -69,9 +70,9 @@ Executes an http call and returns an object containing the server's response and
 ### Return Object
 
 ```
-.request: text <http method> <url> <body>
-.status : numeric code returned
-.value  : message returned
+.request : text <http method> <url> <body>
+.status   : numeric code returned
+.value    : message returned, which is often an object
 ```
 
 If there is an error, **.value** will contain an error object
@@ -106,7 +107,23 @@ In some cases, **.error** might also contain a collection, **.details** (e.g. wh
 
 
 
-### \_URL_Escape ( textToEscape : TEXT {; charsToSkip : TEXT}) -> TEXT
+### parseError() -> $error : Text
+
+Assumes that the Google class has an object with the path
+
+```
+└── ._result
+    └── .error
+        ├── code
+        ├── status
+        └── message
+```
+
+which gets unpacked into a text variable.
+
+
+
+### URL_Escape ( textToEscape : TEXT {; charsToSkip : TEXT}) -> TEXT
 
 * url-escapes text that will be used in a url that might contain special characters that will break the url, like `/`, `<`, `%`, etc.
 * Skips characters in **charsToSkip**, e.g. if you have a spreadsheet range like `'sheetName'!A1:B2`, when you may not want the quote marks to be escaped. All characters in the string **charsToSkip** are skipped, e.g. `'>`

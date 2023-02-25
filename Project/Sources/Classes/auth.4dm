@@ -12,7 +12,7 @@ Class constructor($username : Text; $scopes : Text; $key : Text; $connectionMeth
 	This:C1470.expiresIn:=3600  //seconds
 	This:C1470.oHead:=New object:C1471("alg"; "RS256"; "typ"; "JWT")
 	This:C1470.url:="https://oauth2.googleapis.com/token"
-	This:C1470.bodyPrefix:="grant_type="+Super:C1706._URL_Escape("urn:ietf:params:oauth:grant-type:jwt-bearer")+"&assertion="
+	This:C1470.bodyPrefix:="grant_type="+Super:C1706.URL_Escape("urn:ietf:params:oauth:grant-type:jwt-bearer")+"&assertion="
 	This:C1470.access:=New object:C1471()
 	This:C1470.access.header:=New object:C1471()
 	This:C1470.access.header.name:="Authorization"
@@ -43,12 +43,12 @@ Class constructor($username : Text; $scopes : Text; $key : Text; $connectionMeth
 	//</initialize properties>
 	
 	
-	This:C1470.getHeader(True:C214)  //initialize and force refresh
+	$oResult:=This:C1470.getHeader(True:C214)  //initialize and force refresh
 	// ===============================================================================================================
 	
 	
 	
-Function getHeader($forceRefresh : Variant)
+Function getHeader($forceRefresh : Variant)->$oHeader : Object
 	// returns header object to be used on subsequent calls or null
 	// retrieves a fresh access token if old one expired
 	
@@ -77,7 +77,7 @@ Function getHeader($forceRefresh : Variant)
 	
 	
 	If (Not:C34($forceRefresh))  //token is still current
-		$0:=This:C1470.access.header
+		return This:C1470.access.header
 	Else   // request another token
 		
 		
@@ -110,7 +110,8 @@ Function getHeader($forceRefresh : Variant)
 		var $oResult : Object
 		This:C1470.status:=Null:C1517
 		This:C1470.access.token:=Null:C1517
-		$oResult:=This:C1470._http(HTTP POST method:K71:2; This:C1470.url; $body; This:C1470.jwt.header)
+		Super:C1706.http(HTTP POST method:K71:2; This:C1470.url; $body; This:C1470.jwt.header)
+		$oResult:=This:C1470._result
 		If (Not:C34(Undefined:C82($oResult.value.error)))
 			This:C1470.error:=New object:C1471()
 			This:C1470.error.status:=$oResult.status
@@ -127,12 +128,11 @@ Function getHeader($forceRefresh : Variant)
 		This:C1470.access.header.value:=This:C1470.access.token.token_type+" "+This:C1470.access.token.access_token
 		//</headers to be used in subsequent calls.  token is embedded in the header>
 		
-		var $0 : Object
 		
 		If (This:C1470.status#200)
-			$0:=Null:C1517
+			return Null:C1517
 		Else   //$status=200
-			$0:=This:C1470.access.header  //return the entire object
+			return This:C1470.access.header  //return the entire object
 			This:C1470.createdAtTicks:=Tickcount:C458-600  //just to be safe, force refresh token 10 seconds before we think it's going to expire by aging it by 10 seconds.
 		End if   //status#200
 	End if   //(not($forceRefresh))

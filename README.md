@@ -4,7 +4,7 @@ A 4D component for accessing and working on your google workspace services.
 
 This component is designed for 4D v19R5 or later.
 
-This component is designed for use with the [Service Account method of accessing Google Docs](https://developers.google.com/identity/protocols/oauth2#serviceaccount).  This technique allows your app to operate from a server, to not require periodic re-authorization, and have access to all google services for all accounds for your domain.
+This component is designed for use with the [Service Account method of accessing Google Docs](https://developers.google.com/identity/protocols/oauth2#serviceaccount). See below on how to do that.  This technique allows your app to operate from a server, to not require periodic re-authorization, and have access to all google services for all accounds for your domain.
 If you are trying to set up an app that will be for individual users and not an entire domain, you would use [one of several other configurations](https://developers.google.com/identity/protocols/oauth2#scenarios).
 
 

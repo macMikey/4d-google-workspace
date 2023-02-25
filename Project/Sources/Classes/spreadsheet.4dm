@@ -1,19 +1,21 @@
 Class extends _comms
 
-
-Class constructor($authObject : Object; $url : Text)
+Class constructor($authObject : Object; $url : Variant)
 	Super:C1705("native")  //_comms type
 	This:C1470._auth:=$authObject
-	This:C1470.spreadsheetId:=This:C1470._getSSIdFromURL($url)
+	This:C1470._spreadsheetId:=This:C1470._getSSIdFromURL($url)
 	
 	//<initialize other values>
-	This:C1470.endpoint:="https://sheets.googleapis.com/v4/spreadsheets/"
+	This:C1470._endpoint:="https://sheets.googleapis.com/v4/spreadsheets"
 	//</initialize other values>
+	// _______________________________________________________________________________________________________________
+	
+	
 	
 	// ===============================================================================================================
-	
-	//                                         P U B L I C   F U N C T I O N S
-	
+	// =                                                                                                             =
+	// =                                       P U B L I C   F U N C T I O N S                                       =
+	// =                                                                                                             =
 	// ===============================================================================================================
 	
 	
@@ -45,26 +47,80 @@ Function appendValues($range : Text; $valuesObject : Object; $valueInputOption :
 	
 	//</handle params>
 	
-	$url:=This:C1470.endpoint+\
-		This:C1470.spreadsheetId+\
+	$url:=This:C1470._endpoint+"/"+\
+		This:C1470._spreadsheetId+\
 		"/values/"+\
-		Super:C1706._URL_Escape($rangeString; "'")+\
+		Super:C1706.URL_Escape($rangeString; "'")+\
 		":append"+\
 		$queryString  // don't escape the quotes at the edges of sheet name because it breaks the comparison google does with the range string.
-	$oResult:=This:C1470._http(HTTP POST method:K71:2; $url; JSON Stringify:C1217($2); This:C1470._auth.getHeader())
-	This:C1470.status:=$oResult.status
+	$oResult:=This:C1470._http(HTTP POST method:K71:2; $url; JSON Stringify:C1217($2))
+	This:C1470._result.status:=$oResult.status
 	This:C1470.sheetData:=$oResult.value
 	
-	If (This:C1470.status#200)  // fail
-		$0:=Null:C1517
+	If (This:C1470._result.status#200)  // fail
+		return Null:C1517
 	Else   //ok
-		$0:=This:C1470.sheetData
+		return This:C1470.sheetData
 	End if   //$status#200
 	// _______________________________________________________________________________________________________________
 	
 	
 	
-Function duplicateSheet  // ( sourceSheetId:INTEGER ; insertSheetIndex:INTEGER ; {newSheetId:INTEGER} ; {newSheetName:Text} ) -> object
+Function copySheetToSpreadsheet($sheetName : Text; $targetSpreadsheetId : Text)->$sheet : Object
+	//https://sheets.googleapis.com/v4/spreadsheets/{spreadsheetId}/sheets/{sheetId}:copyTo"
+	var $sheetColl : Collection
+	var $sheetId : Integer
+	var $ssid : Text
+	var $url : Text
+	var $bodyO : Object
+	var $body : Text
+	var $oResult : Object
+	
+	$sheetColl:=This:C1470.findSheetWithName($sheetName)
+	$sheetId:=$sheetColl[0].properties.sheetId
+	$ssId:=This:C1470._spreadsheetId
+	
+	$url:=This:C1470._endpoint+"/"+$ssId+"/sheets/"+String:C10($sheetId)+":copyTo"
+	$bodyO:=New object:C1471("destinationSpreadsheetId"; $targetSpreadsheetId)
+	$body:=JSON Stringify:C1217($bodyO)
+	$oResult:=This:C1470._http(HTTP POST method:K71:2; $url; $body)
+	If (OB Is defined:C1231($oResult.value; "error"))  // error occurred"// this chokes on "value.error" -> If (OB Is defined($oResult.value;"error"))  // error occurred
+		This:C1470.error:=$oResult.value.error
+	End if   //(ob is defined($oResult.value.error))
+	This:C1470._result.status:=$oResult.status
+	
+	If (This:C1470._result.status#200)
+		return Null:C1517
+	Else 
+		$sheet:=This:C1470._result.value
+		return $sheet
+	End if   //$status#200
+	// _______________________________________________________________________________________________________________
+	
+	
+	
+Function createSpreadsheet()->$success : Boolean
+	var $spreadsheetJSON : Text
+	$spreadsheetJSON:=JSON Stringify:C1217(This:C1470.spreadsheet)
+	$oResult:=This:C1470._http(HTTP POST method:K71:2; This:C1470._endpoint; $spreadsheetJSON)
+	If (OB Is defined:C1231($oResult.value; "error"))  // error occurred"// this chokes on "value.error" -> If (OB Is defined($oResult.value;"error"))  // error occurred
+		This:C1470.error:=$oResult.value.error
+	End if   //(ob is defined($oResult.value.error))
+	This:C1470._result.status:=$oResult.status
+	
+	If (This:C1470._result.status#200)
+		return False:C215
+	Else 
+		This:C1470.spreadsheet:=$oResult.value
+		This:C1470._spreadsheetId:=This:C1470.spreadsheet.spreadsheetId
+		return True:C214
+	End if   //$status#200
+	// _______________________________________________________________________________________________________________
+	
+	
+	
+Function duplicateSheet($sourceSheetID : Integer; $insertSheetIndex : Integer; $newSheetID : Variant; $newSheetName : Variant)->$oReturn : Object
+	// ( sourceSheetId:INTEGER ; insertSheetIndex:INTEGER ; {newSheetId:INTEGER} ; {newSheetName:Text} ) -> object
 	//POST https://sheets.googleapis.com/v4/spreadsheets/{spreadsheetId}:batchUpdate
 /*
 the request body is
@@ -88,28 +144,26 @@ the request body is
 }
 */
 	
-	var $1; $2; $3 : Integer
-	var $4 : Text
 	var $requestBody; $duplicateSheetRequest; $requests; $batchUpdate : Object
 	
 	//<build the duplicateSheetRequest object>
 	$duplicateSheetRequest:=New object:C1471()
-	$duplicateSheetRequest.sourceSheetId:=$1
+	$duplicateSheetRequest.sourceSheetId:=$sourceSheetID
 	
 	If (Count parameters:C259>=2)
-		$duplicateSheetRequest.insertSheetIndex:=$2
+		$duplicateSheetRequest.insertSheetIndex:=$insertSheetIndex
 	End if   //count parameters>=2
 	
 	If (Count parameters:C259>=3)
-		If (Not:C34(Undefined:C82($3)))
-			If ($3#0)  // 0 means nope
-				$duplicateSheetRequest.newSheetId:=$3
+		If (Not:C34(Undefined:C82($newSheetID)))
+			If ($newSheetID#0)  // 0 means nope
+				$duplicateSheetRequest.newSheetId:=$newSheetID
 			End if 
 		End if   //not(undefined($3))
 	End if   //count parameters>=3
 	
 	If (Count parameters:C259>=4)
-		$duplicateSheetRequest.newSheetName:=$4
+		$duplicateSheetRequest.newSheetName:=$newSheetName
 	End if   // count parameters>=4
 	
 	$requests:=New object:C1471()
@@ -119,22 +173,17 @@ the request body is
 	$batchUpdate:=New object:C1471()
 	$batchUpdate.requests:=New collection:C1472($requests)
 	
-	$url:=This:C1470.endpoint+This:C1470.spreadsheetId+":batchUpdate"
-	
-	var $0; $oResult : Object
-	
-	$oResult:=This:C1470._http(HTTP POST method:K71:2; $url; JSON Stringify:C1217($batchUpdate); This:C1470._auth.getHeader())
-	This:C1470.status:=$oResult.status
+	$url:=This:C1470._endpoint+"/"+This:C1470._spreadsheetId+":batchUpdate"
 	
 	
-	$0:=New object:C1471()
-	$0.result:=$oResult
+	$oResult:=This:C1470._http(HTTP POST method:K71:2; $url; JSON Stringify:C1217($batchUpdate))
+	This:C1470._result.status:=$oResult.status
+	return New object:C1471("result"; $oResult)
 	
-	If (This:C1470.status=200)
-		// still need to rename it, though xxx
-		$0.success:=True:C214
+	If (This:C1470._result.status=200)
+		return New object:C1471("success"; True:C214)
 	Else   //$status#200
-		$0.success:=False:C215
+		return New object:C1471("success"; False:C215)
 	End if   //status=200
 	// _______________________________________________________________________________________________________________
 	
@@ -155,70 +204,61 @@ Function entitySelectionToCollection($es : 4D:C1709.EntitySelection; $attributes
 	
 	
 	
-Function findSheetWithName  // sheetName:text -> collection
+Function findSheetWithName($sheetName : Text)->$oResult : Collection
 	// used to search this.sheetData.Sheets[] for .properties.title = sheetName
 	// returns a collection with all of the sheets sharing that name
-	var $1; $sheetName : Text
-	var $0 : Collection
-	
-	$sheetName:=$1
-	$0:=New collection:C1472()
+	$oResult:=New collection:C1472()
 	
 	This:C1470._loadIfNotLoaded()
 	
 	For each ($sheet; This:C1470.sheetData.sheets)
 		If $sheet.properties.title=$sheetName
-			$0.push($sheet)
+			$oResult.push($sheet)
 		End if 
 	End for each   //($sheet;This.sheetData.sheets)
 	// _______________________________________________________________________________________________________________
 	
 	
 	
-Function getSheetNames  //  -> sheetNameList: collection
+Function getSheetNames()->$sheetNames : Collection
 	// optionally reloads the sheet, first
 	
-	
-	var $sheetNames : Collection
-	$sheetNames:=New collection:C1472
+	$sheetNames:=New collection:C1472()
 	
 	This:C1470._loadIfNotLoaded()
 	
-	If (This:C1470.status#200)
-		$0:=Null:C1517
-	Else 
-		For ($i; 0; This:C1470.sheetData.sheets.length-1)
-			$sheetNames[$i]:=This:C1470.sheetData.sheets[$i].properties.title
-		End for 
-		
-		$0:=$sheetNames
+	If (This:C1470._result.status#200)
+		return Null:C1517
 	End if 
+	
+	For ($i; 0; This:C1470.sheetData.sheets.length-1)
+		$sheetNames.push(This:C1470.sheetData.sheets[$i].properties.title)
+	End for 
 	// _______________________________________________________________________________________________________________
 	
 	
 	
-Function getValues  //(range:TEXT {; majorDimension:Text ; valueRenderOption:Text ; dateTimeRenderOption:Text} )
+Function getValues($range : Text; $majorDimension : Variant; $valueRenderOption : Variant; $dateTimeRenderOption : Variant)->$oValues : Object
+	//(range:TEXT {; majorDimension:Text ; valueRenderOption:Text ; dateTimeRenderOption:Text} )
 	// Returns a range of values from a spreadsheet. The caller must specify the spreadsheet Id and a range.
 	
 	//<handle params>
-	var $1; $2; $3; $4 : Text
-	var $oResult : Object
-	$queryString:=This:C1470._queryRange($1)  //e.g. 28d738fdhd3v83a/values/Sheet1!A1:B2
+	$queryString:=This:C1470._queryRange($range)  //e.g. 28d738fdhd3v83a/values/Sheet1!A1:B2
 	
 	$majorDimension:="DIMENSION_UNSPECIFIED"
 	$valueRenderOption:="FORMATTED_VALUE"
 	$dateTimeRenderOption:="SERIAL_NUMBER"
 	
 	If (Count parameters:C259>=2)
-		$majorDimension:=$2
+		$majorDimension:=$majorDimension
 	End if 
 	
 	If (Count parameters:C259>=3)
-		$valueRenderOption:=$3
+		$valueRenderOption:=$valueRenderOption
 	End if 
 	
 	If (Count parameters:C259>=4)
-		$dateTimeRenderOption:=$4
+		$dateTimeRenderOption:=$dateTimeRenderOption
 	End if 
 	
 	$queryString:=$queryString+"?"+\
@@ -226,93 +266,117 @@ Function getValues  //(range:TEXT {; majorDimension:Text ; valueRenderOption:Tex
 		"valueRenderOption="+$valueRenderOption+"&"+\
 		"dateTimeRenderOption="+$dateTimeRenderOption
 	
-	$url:=This:C1470.endpoint+This:C1470.spreadsheetId+"/values/"+$queryString
-	$oResult:=This:C1470._http(HTTP GET method:K71:1; $url; ""; This:C1470._auth.getHeader())
+	$url:=This:C1470._endpoint+"/"+This:C1470._spreadsheetId+"/values/"+$queryString
+	$oResult:=This:C1470._http(HTTP GET method:K71:1; $url; "")
 	If (OB Is defined:C1231($oResult.value; "error"))  // error occurred"// this chokes on "value.error" -> If (OB Is defined($oResult.value;"error"))  // error occurred
 		If (($oResult.value.error.code=401) & ($oResult.value.error.status="UNAUTHENTICATED"))  //token expired, try again with a forced refresh on the token
 			$oResult:=This:C1470._http(HTTP GET method:K71:1; $url; ""; This:C1470._auth.getHeader(True:C214))
 		End if   //($oResult.value.error.code=401) & ($oResult.value.error.status="UNAUTHENTICATED")
 	End if   //(ob is defined($oResult.value.error))
-	This:C1470.request:=$oResult.request
-	This:C1470.status:=$oResult.status
+	This:C1470._request:=$oResult._request
+	This:C1470._result.status:=$oResult.status
 	
-	If (This:C1470.status#200)
-		$0:=Null:C1517
+	If (This:C1470._result.status#200)
+		return Null:C1517
 	Else 
-		$0:=$oResult.value
+		return $oResult.value
 	End if   //$status#200
 	// _______________________________________________________________________________________________________________
 	
 	
 	
-Function load  // {(rangeString:text , includeGridData:boolean)}
+Function load($rangeString : Variant; $includeGridData : Variant)->$oSheetData : Object
+	// {(rangeString:text , includeGridData:boolean)}
 	// loads all spreadsheet data
 	// optional params:
 	
 	//<handle params>
-	var $1 : Text
-	var $2 : Boolean
 	var $oResult : Object
 	
 	$rangeString:=""
 	$includeGridData:="false"
 	
 	If (Count parameters:C259>=2)
-		$includeGridData:=Lowercase:C14(String:C10($2))
+		$includeGridData:=Lowercase:C14(String:C10($includeGridData))
 	End if 
 	//</handle params>
 	
 	
 	$queryString:="?"+\
-		This:C1470._queryRange($1)+"&"+\
+		This:C1470._queryRange($rangeString)+"&"+\
 		"includeGridData="+$includeGridData
 	
 	
-	$url:=This:C1470.endpoint+This:C1470.spreadsheetId+$queryString
-	$oResult:=This:C1470._http(HTTP GET method:K71:1; $url; ""; This:C1470._auth.getHeader())
-	This:C1470.status:=$oResult.status
+	$url:=This:C1470._endpoint+"/"+This:C1470._spreadsheetId+$queryString
+	$oResult:=This:C1470._http(HTTP GET method:K71:1; $url; "")
+	This:C1470._result.status:=$oResult.status
 	This:C1470.sheetData:=$oResult.value
 	
-	
-	If (This:C1470.status#200)
-		$0:=Null:C1517
+	If (This:C1470._result.status#200)
+		return Null:C1517
 	Else   //fail
-		$0:=This:C1470.sheetData
+		return This:C1470.sheetData
 	End if   //$status#200
 	// _______________________________________________________________________________________________________________
 	
 	
 	
-Function parseError()->$error : Text  //()
-	// parses an error object and returns the contents
-	var $oError : Object
-	$oError:=This:C1470.sheetData.error
-	$error:=""
-	If ($oError#Null:C1517)
-		$error:="Request: "+This:C1470.request+"\r"+\
-			"Code: "+String:C10($oError.code)+"\r"+\
-			"Status: "+$oError.status+"\r"+\
-			"Message: "+$oError.message
-	End if   //$oError#Null
+Function renameSheet($sheetID : Integer; $newName : Text)->$success : Boolean
+/*
+POST https://sheets.googleapis.com/v4/spreadsheets/{spreadsheetId}:batchUpdate
+updateSheetProperties
+	
+body format is:
+{
+   "requests":[
+      {
+         "updateSheetProperties":
+            {
+               "properties":
+                  {
+                     "sheetId": integer,
+                     "title"  : text
+                  },
+                "fields":"title"
+            }
+      }
+   ]
+}
+*/
+	var $propertiesO; $newPropertiesO; $updateSheetPropertiesO; $requestO; $bodyO : Object
+	
+	$url:=This:C1470._endpoint+"/"+This:C1470._spreadsheetId+":batchUpdate"
+	
+	
+	//<body>
+	$propertiesO:=New object:C1471("sheetId"; String:C10($sheetID); "title"; $newName)  // new title for the sheet
+	$newPropertiesO:=New object:C1471("properties"; $propertiesO; "fields"; "title")
+	$updateSheetPropertiesO:=New object:C1471("updateSheetProperties"; $newPropertiesO)
+	$requestO:=New object:C1471("requests"; New collection:C1472())
+	$requestO.requests.push($updateSheetPropertiesO)
+	$body:=JSON Stringify:C1217($requestO)
+	//</body>
+	
+	$oResult:=This:C1470._http(HTTP POST method:K71:2; $url; $body)
+	This:C1470._result:=$oResult
+	return This:C1470._result.status=200
 	// _______________________________________________________________________________________________________________
 	
 	
 	
-Function setValues  //(range:TEXT ; valuesObject: Object ; valueInputOption:Text {; includeValuesInResponse: Boolean ; responseValueRenderOption: Text ; responseDateTimeRenderOption:Text})
+Function setValues($range : Text; $valuesObject : Object; $valueInputOption : Text; $includeValuesInResponse : Variant; $responseValueRenderOption : Variant; $responseTimeRenderOption : Variant)->$oSheetData : Object
+	//(range:TEXT ; valuesObject: Object ; valueInputOption:Text {; includeValuesInResponse: Boolean ; responseValueRenderOption: Text ; responseDateTimeRenderOption:Text})
 	// PUT https://sheets.googleapis.com/v4/spreadsheets/{spreadsheetId}/values/{range}
 	//Sets values in a range of a spreadsheet.
 	
 	
 	//<handle params>
-	var $1; $3; $5; $6 : Text
-	var $2 : Object
-	var $4 : Boolean
 	var $oResult : Object
 	
 	//<mandatory parameters>
-	$rangeString:=This:C1470._queryRange($1)
-	$2.range:=$rangeString  // has to match the query range
-	$queryString:="?valueInputOption="+$3  // going to have at least one query parameter, the valuesInputOption
+	$rangeString:=This:C1470._queryRange($range)
+	$valuesObject.range:=$rangeString  // has to match the query range
+	$queryString:="?valueInputOption="+$valueInputOption  // going to have at least one query parameter, the valuesInputOption
 	//</mandatory parameters>
 	
 	
@@ -321,17 +385,17 @@ Function setValues  //(range:TEXT ; valuesObject: Object ; valueInputOption:Text
 	
 	$includeValuesInResponse:="false"
 	If (Count parameters:C259>=4)
-		$includeValuesInResponse:=Lowercase:C14(String:C10($4))
+		$includeValuesInResponse:=Lowercase:C14(String:C10($includeValuesInResponse))
 	End if 
 	
 	$responseValueRenderOption:="FORMATTED_VALUE"
 	If (Count parameters:C259>=5)
-		$includeValuesInResponse:=$5
+		$includeValuesInResponse:=$responseValueRenderOption
 	End if 
 	
 	$responseDateTimeRenderOption:="SERIAL_NUMBER"
 	If (Count parameters:C259>=6)
-		$responseDateTimeRenderOption:=$6
+		$responseDateTimeRenderOption:=$responseTimeRenderOption
 	End if 
 	
 	
@@ -341,16 +405,17 @@ Function setValues  //(range:TEXT ; valuesObject: Object ; valueInputOption:Text
 		"&responseDateTimeRenderOption="+$responseDateTimeRenderOption
 	
 	//</handle params>
-	$url:=This:C1470.endpoint+This:C1470.spreadsheetId+"/values/"+Super:C1706._URL_Escape($rangeString; "'")+$queryString  // don't escape the quotes at the edges of sheet name because it breaks the comparison google does with the range string.
-	$oResult:=This:C1470._http(HTTP PUT method:K71:6; $url; JSON Stringify:C1217($2); This:C1470._auth.getHeader())
-	This:C1470.status:=$oResult.status
+	$url:=This:C1470._endpoint+"/"+This:C1470._spreadsheetId+"/values/"+Super:C1706.URL_Escape($rangeString; "'")+$queryString  // don't escape the quotes at the edges of sheet name because it breaks the comparison google does with the range string.
+	$oResult:=This:C1470._http(HTTP PUT method:K71:6; $url; JSON Stringify:C1217($valuesObject))
+	This:C1470._result.status:=$oResult.status
 	This:C1470.sheetData:=$oResult.value
 	
-	If (This:C1470.status#200)  // fail
-		$0:=Null:C1517
+	If (This:C1470._result.status#200)  // fail
+		return Null:C1517
 	Else   //ok
-		$0:=This:C1470.sheetData
+		return This:C1470.sheetData
 	End if   //$status#200
+	// _______________________________________________________________________________________________________________
 	
 	
 	
@@ -362,19 +427,18 @@ Function setValues  //(range:TEXT ; valuesObject: Object ; valueInputOption:Text
 	
 	
 	
-Function _http  // (http_method:TEXT ; url:TEXT; body:TEXT; header:object)
+Function _http($http_method : Text; $url : Text; $body : Text)->$oResult : Object
 	// returns an object with properties  status:TEXT ; value:TEXT
 	//tries the _comms._http.  If it fails, it checks to see if that is because the token expired, and if so, tries again.
-	var $1; $2; $3 : Text
-	var $4; $oResult; $0 : Object
 	
-	$oResult:=Super:C1706._http($1; $2; $3; $4)
+	$oResult:=Super:C1706.http($http_method; $url; $body; This:C1470._auth.getHeader())
 	If (OB Is defined:C1231($oResult.value; "error"))  // error occurred"// this chokes on the "values.error" If (OB Is defined($oResult;"value.error"))  // error occurred"
 		If (($oResult.value.error.code=401) & ($oResult.value.error.status="UNAUTHENTICATED"))  //token expired, try again with a forced refresh on the token
-			$oResult:=Super:C1706._http($1; $2; $3; This:C1470._auth.getHeader(True:C214))  // $4 should be this._auth.getHeader()
+			$oResult:=Super:C1706.http($http_method; $url; $body; This:C1470._auth.getHeader())
 		End if   //($oResult.value.error.code=401) & ($oResult.value.error.status="UNAUTHENTICATED")
 	End if   //(ob is defined($oResult.value.error))
-	$0:=$oResult
+	This:C1470._result:=$oResult
+	This:C1470._result.status:=$oResult.status
 	// _______________________________________________________________________________________________________________
 	
 	
@@ -396,7 +460,7 @@ Function _ss_batchUpdate  // (request:object ; includeSpreadsheetInResponse:bool
   "responseIncludeGridData": boolean
 }
 */
-	$url:=This:C1470.endpoint+This:C1470.spreadsheetId+":batchUpdate"
+	$url:=This:C1470._endpoint+"/"+This:C1470._spreadsheetId+":batchUpdate"
 	// _______________________________________________________________________________________________________________
 	
 	
@@ -462,11 +526,13 @@ Function _queryRange  //(rangeString:text)
 		$sheetPart:=Substring:C12($0; 1; ($bangPos-1))  // beginning until just before the bang
 		$cellsPart:=Substring:C12($0; ($bangPos+1); Length:C16($0))
 		If (($sheetPart[[1]]#"'") & ($sheetPart[[Length:C16($sheetPart)]]#"'"))  // sheet name isn't already quoted
-			$sheetPart:="'"+Super:C1706._URL_Escape($sheetPart)+"'"  // surround the sheet name with single quotes so we don't have to worry about spaces
+			$sheetPart:="'"+Super:C1706.URL_Escape($sheetPart)+"'"  // surround the sheet name with single quotes so we don't have to worry about spaces
 		End if 
 		$0:=$sheetPart+$bang+$cellsPart  // put it back together
 		//</quote the sheet name so names with spaces will be ok>
 	End if 
+	// _______________________________________________________________________________________________________________
+	
 	
 	
 	// ===============================================================================================================
@@ -485,12 +551,6 @@ Function _developerMetadata_search
 	//POST/v4/spreadsheets/{spreadsheetId}/developerMetadata:search
 	//Returns all developer metadata matching the specified DataFilter.
 	// _______________________________________________________________________________________________________________
-	
-Function _ss_create
-	//POST/v4/spreadsheets
-	//Creates a spreadsheet, returning the newly created spreadsheet.
-	// _______________________________________________________________________________________________________________
-	
 	
 Function _ss_getByDataFilter
 	//POST/v4/spreadsheets/{spreadsheetId}:getByDataFilter

@@ -1,5 +1,5 @@
-*.json
 Resources/Private
+folders.json
 *.4DD
 .gitattributes
 *.sublime*

@@ -291,10 +291,10 @@ Function _http  // (http_method:TEXT ; url:TEXT; body:TEXT; header:object)
 		$connector:="?"
 	End if 
 	$2:=$2+$connector+"key="+This:C1470._apiKey
-	$oResult:=Super:C1706._http($1; $2; $3; $4)
+	$oResult:=Super:C1706.http($1; $2; $3; $4)
 	If (OB Is defined:C1231($oResult; "value.error"))  // error occurred
 		If (($oResult.value.error.code=401) & ($oResult.value.error.status="UNAUTHENTICATED"))  //token expired, try again with a forced refresh on the token
-			$oResult:=Super:C1706._http($1; $2; $3; This:C1470._auth.getHeader(True:C214))  // $4 should be this._auth.getHeader()
+			$oResult:=Super:C1706.http($1; $2; $3; This:C1470._auth.getHeader(True:C214))  // $4 should be this._auth.getHeader()
 		End if   //($oResult.value.error.code=401) & ($oResult.value.error.status="UNAUTHENTICATED")
 	End if   //(ob is defined($oResult.value.error))
 	$0:=$oResult

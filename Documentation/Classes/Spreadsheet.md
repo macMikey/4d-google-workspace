@@ -1,30 +1,36 @@
 # Class spreadsheet
 
-
-
-## Contents
-
-* [Description](#description)
-* [Vocabulary](#vocabulary)
-* [Constructor Parameters](#constructor-parameters)
-* [API](#api)
-* [Internal Structure](#internal-structure)
-* [Internal API](#internal-api)
-* [References](#references)
-
-
-
-
-## Description
 Class for accessing and updating google sheets.
 
-Extends the *_comms* class, **but** there should be at least one *_comms* object created separately that will be the "master".  Authorization header data should be copied from that object to the others.  Authorization headers should be checked periodically to see if they have expired or have been revoked, and then the new data shared after the authorization is renewed.
+Extends the *_comms* class.
 
 Wherever appropriate, I have copied/pasted information directly from Google's documentation. In some cases I have paraphrased or rewritten for clarity.
 
 
 
+## Contents
+
+[Vocabulary](#vocabulary)
+
+[Constructor Parameters](#constructor-parameters)
+
+[API](#api)
+
+[Public Properties](#public-properties)
+
+[Private Properties](#private-properties)
+
+[Internal API](#internal-api)
+
+[References](#references)
+
+
+
 ## Vocabulary
+
+Much of the documentation is copied/pasted from Google's documentation, so some of the vocabulary is different than 4D vocabulary.
+
+
 
 Term | Description
 -- | --
@@ -32,15 +38,16 @@ Array | What 4D calls a *Collection*
 Range | *Generally* can be a sheet name, or a sheet name plus the bang `!` symbol, plus a range in "A1" format, e.g. Sheet1!A1:B2 
 Sheet | A tab in a spreadsheet
 Spreadsheet | A document that contains one or more Sheets.
+spreadsheetId | Google's capitalization is not spreadsheetID, it's spreadsheetId. Rather than fighting it and having to overcome the cases where it matters, I choose to comply. 
 
 
 
 ## Constructor Parameters
 
-|Name|Datatype|Description|
-|--|--|--|
-|auth|object|Object obtained from a *cs.google.comms* class via **getAuthAccess** |
-|URL|Text|The URL of the spreadsheet you want to work with|
+|Name|Mandatory | Datatype|Description|
+|--|--|--|--|
+|auth|Mandatory| object |Object obtained from a *cs.google.comms* class via **getAuthAccess** |
+|URL|Optional<br>**Omit if creating a new spreadsheet (not a new sheet)** |Text|The URL of the spreadsheet you want to work with. The class will strip out the parts it needs, so just load the spreadsheet in your browser, then copy the entire URL from the URL field.|
 
 
 
@@ -61,13 +68,16 @@ End if
 Function Name | Description
 -- | --
 [appendValues](#appendvalues) | Adds the collection to the end (below) the values in the sheet
-[duplicateSheet](#duplicatesheet) | duplicates a sheet
+[createSpreadsheet](#createspreadsheet)|Creates a new spreadsheet (file) and loads it.
+[copySheetToSpreadsheet](#copyto)|Copies a sheet from one spreadsheet to another
+[duplicateSheet](#duplicatesheet) | Duplicates a sheet (tab)
 [entitySelectionToCollection](#entityselectiontocollection) | Turns an entity selection into a values collection
-[findSheetWithName](#findsheetwithname)| returns a collection of sheet objects whose names match the one provided to the function
+[findSheetWithName](#findsheetwithname)| Returns a collection of sheet objects whose names match the one provided to the function
 [getSheetNames](#getsheetnames) | 1. Reloads all sheet data<br>2. Returns a collection of the names of the sheets (tabs) in the spreadsheet. 
 [getValues](#getvalues)|1. Reloads all values for the sheet<br>2. Returns an object containing the value range
 [load](#load) | Retrieves the metadata for the spreadsheet
-[parseError](#parseerror) | parses the error object created by google sheets
+[parseError](#parseerror) | Parses the error object created by google sheets
+[renameSheet](#renamesheet) | Renames a sheet 
 [setValues](#setvalues) | 1. Updates the range with the *valuesObject* provided.  ***NOTE:  Existing values are not overwritten unless you specify a new value for a cell.***<br>2. If successful, the response body contains a response object
 
 
@@ -176,6 +186,84 @@ End If
 
 
 
+### copySheetToSpreadsheet ( $sheetName : Text ; $toSpreadsheetId : Text ) -> $resultSheet : Object <a name="copyto"></a>
+
+* Implements [copyTo](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.sheets/copyTo)
+* Copies a single sheet (the current sheet) from one spreadsheet to another
+* Google does not support duplicating a spreadsheet. This is the closest you can get to that
+* If successful, returns a [Sheet Object](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/sheets#SheetProperties)
+* If successful, the new sheet name will be "Copy of " + *$sheetName*. That is what Google names the sheet.
+* If, after copying the sheet, you want to do something like modifying the sheet's name or position, use [renameSheet](#renamesheet)
+
+
+
+
+#### Example
+
+```4d
+$sheetName := "TEMPLATE"
+$targetSS := getPrivateData ( "target-spreadsheet-url.txt" )
+$newSheet := $s.copySheetToSpreadsheet ( $sheetName ; $targetSS )
+$success := $s.renameSheet ( $newSheet.sheetId ; $sheetName ) // rename sheet to change name from "Copy of" + $sheetName to $sheetName
+```
+
+
+
+
+
+
+### createSpreadsheet  () -> $success : boolean<a name="createspreadsheet"></a>
+
+Implements [spreadsheets.create](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/create)
+
+* Any options or parameters you wish to specify can be set in the [spreadsheet properties](#public-properties) of the **cs.google.spreadsheet** object before calling this function. See the example, below.
+* The created spreadsheet is placed at the user's root folder. To move it, see the example in the [driveFile.moveFile](driveFile.md#move-file) documentation.
+* Loads the new spreadsheet into `.spreadsheet` (see [Public Properties](#public-properties). The structure of that object is [Spreadsheet](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#Spreadsheet)
+
+
+
+#### Response Body
+
+If successful:
+
+* The `.spreadsheet` property will contain the [Spreadsheet](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#Spreadsheet).
+* The function will return True
+
+
+
+#### Example
+
+```4d
+$s := cs.google.spreadsheet.new ( oGoogleComms ) // no url b/c we're creating a sheet
+$properties := new object ( "title" ; "test sheet" )
+$s.spreadsheet : =New object ( "properties" ; $properties )
+// define two sheets to add
+$s.spreadsheet.sheets := New Collection()
+$sheet1 := New object ( "properties" ; New object ( "title" ; "Sheet1" ; "index" ; 1 ) )
+$sheet2 := New object ( "properties" ; New object ( "title" ; "Sheet2" ; "index" ; 2 ) )
+$s.spreadsheet.sheets.push ( $sheet1 )
+$s.spreadsheet.sheets.push ( $sheet2 )
+
+$oResult := $s.createSpreadsheet () 
+If ( $oResult = Null ) //fail
+   $errorMessage := $s.parseError ()
+   return $errorMessage
+End If
+// $s.spreadsheet will be replaced with the properties of the spreadsheet
+```
+
+
+
+#### References
+
+[API: spreadsheets.create](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/create)
+
+[Spreadsheets Object](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#Spreadsheet)
+
+[Google Sheets API Guide For Creating A Spreadsheet](https://developers.google.com/sheets/api/guides/create#work_with_folders)
+
+
+
 ### duplicateSheet ( sourceSheetID:INTEGER ; insertSheetIndex:INTEGER ; {newSheetID:INTEGER} ; {newSheetName:Text} ) -> object <a name="duplicatesheet"></a>
 
 Implements [Batch Update](https://developers.google.com/sheets/api/guides/batchupdate) with a [Duplicate Sheet Request](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#duplicatesheetrequest) to duplicate a sheet
@@ -218,7 +306,7 @@ Implements [Batch Update](https://developers.google.com/sheets/api/guides/batchu
   		            .sheetID							: integer
   		            .sheetType						: text (e.g. "GRID")
   		            .title								: text
-  		.spreadsheetID                    : text
+  		.spreadsheetId                    : text
  ```
 
 
@@ -258,14 +346,26 @@ Returns a collection of sheet (tab) objects that have the name *sheetName*
 [with the following properties](https://developers.google.com/sheets/api/samples/sheet#determine_sheet_id_and_other_properties)
 
 ```
-.gridProperties    : object
-   .rowCount       : number of rows
-   .columnCount    : number of columns
-   .frozenRowCount : number of frozen rows
-.index             : integer - position of the sheet (tab) in the spreadsheet
-.sheetID           : id used to reference the sheet
-.sheetType         : (add when you find out)
-.title             : name of the sheet
+[0..n]                                  : (collection)
+    ├── .properties                     : (object)
+    │    ├── .gridProperties            : (object)
+    │    │   ├── .columnCount           : number of columns
+    │    │   ├── .frozenColumnCount     : number of rows
+    │    │   ├── .frozenRowCount        : number of frozen rows
+    │    │   └── .rowCount              : number of rows
+    │    ├── .index                     : integer - position of the sheet (tab) in the spreadsheet
+    │    ├── .sheetId                   : integer id used to reference the sheet
+    │    ├── .sheetType                 : (add when you find out)
+    │    └── .title                     : name of the sheet
+    └── .protectedRanges                : (collection)
+         [0..n]                         : (object)
+             ├── .editors               : (object)
+             │   └── .users             : (collection)
+             │       [0..n]             : text
+             ├── .protectedRangeId      : integer
+             ├── .range                 : (object)
+             └── .requestingUserCanEdit : boolean
+                         
 ```
 
 
@@ -339,6 +439,8 @@ By default, data within grids will not be returned. You can include grid data on
 For large spreadsheets, it is recommended to retrieve only the specific fields of the spreadsheet that you want.
 To retrieve only subsets of the spreadsheet, use the ranges URL parameter. Multiple ranges can be specified. Limiting the range will return only the portions of the spreadsheet that intersect the requested ranges. Ranges are specified using A1 notation.
 
+
+
 #### Parameters
 
 |Parameter Name|Required?|Parameter Type|Default|Description|
@@ -346,7 +448,10 @@ To retrieve only subsets of the spreadsheet, use the ranges URL parameter. Multi
 |range|No|Text|Null|A range, in A1 format.  Multiple ranges can be separated with commas|
 |includeGridData|No|Boolean|False|Specify whether to include grid data|
 
+
+
 #### Return Object
+
 An object with the following fields:
 
 |Fieldname|Description|
@@ -365,7 +470,10 @@ An object with the following fields:
 |value.*spreadsheetUrl*|string|The url of the spreadsheet.|
 |value.*developerMetadata*|object|[The developer metadata associated with a spreadsheet.](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.developerMetadata#DeveloperMetadata)|
 
+
+
 #### Examples
+
 ```4d
 $oSheetData:=$ss.load("Sheet1") `This is a valid range for loading, but not for updating.
 If ($oResult#Null)
@@ -420,7 +528,34 @@ End If
 
 
 
+### renameSheet ( $sheetId : Integer ; $newName : Text ) -> $success : Boolean
+
+* Changes the name (title) of *$sheetId* to *$newName*
+* If successful, returns *True*
+
+
+
+#### Example
+
+```4d
+$sheetId := $s.findSheetWithName ( "Copy of Template" ) [0] . properties . sheetId
+$success := $s.renameSheet ( $sheetId ; "TEMPLATE" )
+```
+
+
+
+#### References
+
+* [batchUpdate](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/batchUpdate)
+* [request](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#Request)
+* [updateSheetProperties](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#UpdateSheetPropertiesRequest).
+
+
+
+
+
 ### setValues (range:TEXT ;  values:Object {;valueInputOption:TEXT ; includeValuesInResponse: Boolean ; responseValueRenderOption:TEXT; responseDateTimeRenderOption:TEXT}) -> Object <a name="setvalues"></a>
+
 Implements [Spreadsheet.values.update](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/update)
 
 1. Updates the range with the *valuesObject* provided.  ***NOTE:  Existing values are not overwritten unless you specify a new value for a cell.***
@@ -488,7 +623,29 @@ End If
 
 
 
-## Internal Structure
+## Public Properties <a name="public-properties"></a>
+
+The public properties of this class should be the same as [Google's Spreadsheet Properties](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#Spreadsheet) because...I want to use this structure directly in the calls to Google's API. In some cases, this component's API will populate these fields.
+
+In most cases, these fields are optional, but if you want to specify them for cases where you need them, you can.
+
+Property Name | Sub-property Name | Description
+-- | -- | --
+sheetData | |Information returned by various commands:<br>[appendValues](#appendvalues)<br>[load](#load)<br>[setValues](#setvalues)
+spreadsheet | |
+ |spreadsheetId | **Read-Only** (String). This is embedded in the URL that is sent to Google. It is specified in the **cs.google.spreadsheet** constructor 
+ |properties | [Spreadsheet Properties Object](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#SpreadsheetProperties)
+ | sheets | [Sheet Object](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/sheets#Sheet)
+ | namedRanges | [Named Range object](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#NamedRange)
+ | spreadsheetURL | **Read-Only** (String). This is the URL that is set in the **cs.google.spreadsheet** constructor. 
+ | developerMetadata | [Developer Metadata Object](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.developerMetadata#DeveloperMetadata)
+ | dataSources | [Data Sources Object](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#DataSource)
+ | dataSourceSchedules | [Data Source Refresh Schedule](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#DataSourceRefreshSchedule)
+status| | http status of the request
+
+
+
+## Private Properties <a name="private-properties"></a>
 
 
 
@@ -496,14 +653,13 @@ End If
 
 
 
-### Internal Properties
-
 |Field|Description|
 |--|--|
-|spreadsheetID|The part of the URL after /spreadsheets/d/|
-|endpoint|the base url for the API to use|
-|status|http status of the request|
-|sheetData|the object returned from google|
+|_auth | **cs.google._auth** object|
+|_endpoint|the base url for the API to use|
+|_request | The request made to the server - useful for debugging|
+|_spreadsheetId|The part of the URL after /spreadsheets/d/|
+
 
 
 
@@ -574,4 +730,8 @@ Builds a range query string in A1 format for use in calls from the class
 
 
 ## References
+I have tried to embed references, where appropriate, with each API call, for easier reference.
+
+The API itself is documented at:
+
 https://developers.google.com/sheets/api/reference/rest

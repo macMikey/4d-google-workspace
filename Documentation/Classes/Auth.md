@@ -1,13 +1,11 @@
 # Class auth
 
+* There should be a single *cs.google.auth* object for your app, which should be passed to other classes such as spreadsheets.
+* The class may need to modify its properties, specifically the token that is passed to it by Google, as the tokens expire, periodically. Therefore, storing the token in **Storage** is not appropriate. If multiple processes require access to Google's services, then separate auth objects may be created, by each class.
 
+* Extends the **_comms** class.
 
-## Description
-There should be a single *cs.google.auth* object for your app, which will then be passed to other classes such as spreadsheets.
-
-Extends the **_comms** class.
-
-Manages the authorization and ongoing access with Google.
+* Manages the authorization and ongoing access with Google.
 
 
 
@@ -37,12 +35,15 @@ End if
 
 ## Using Comms With Multiple Docs Simultaneously
 
-The *comms* object is designed to be independent of other objects.  Before you create your other objects, you will create the cs.google.auth object, and then pass it to each of your other objects.
+The *comms* object is designed to be independent of other objects.  Before you create your other objects, you will create the *cs.google.auth* object, and then pass it to each of your other objects.
 When those objects wish to send a request to Google, they will obtain the current authorization information from the *cs.google.auth* class to send with the request.  If the authorization/access information is stale or has expired, the object will refresh it before processing your request.
 In the event that an access token expires unexpectedly, you can force the *cs.google.auth* object to refresh the token.
 To pass the authorization/access information to a class, simply use the name of the *cs.google.auth* object.
 
+
+
 #### Example: ####
+
 ```4d
 $oGoogleAuth:=cs.google.auth.new($username;$scopes;$key;"native")
 $oGoogleSpreadsheet:=cs.google.spreadsheet.new($oGoogleAuth;$url)
@@ -111,5 +112,8 @@ scoopes:  scopes the app is requesting to use
 url:		 url to call for the oauth2 request
 ```
 
+
+
 ## Reference
+
 https://developers.google.com/identity/protocols/oauth2

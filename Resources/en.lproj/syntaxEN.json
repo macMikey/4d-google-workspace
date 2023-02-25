@@ -1,0 +1,609 @@
+{
+	"_method_": {},
+	"cs.google": {
+		"auth": {
+			"new()": {
+				"Syntax": "**.new**( *username* : Text; *scopes* : Text; *key* : Text; *connectionMethod* : Variant )",
+				"Params": [
+					[
+						"username",
+						"Text",
+						"->"
+					],
+					[
+						"scopes",
+						"Text",
+						"->"
+					],
+					[
+						"key",
+						"Text",
+						"->"
+					],
+					[
+						"connectionMethod",
+						"Variant",
+						"->"
+					]
+				],
+				"Summary": ""
+			}
+		},
+		"spreadsheet": {
+			"new()": {
+				"Syntax": "**.new**( *authObject* : Object; *url* : Variant )",
+				"Params": [
+					[
+						"authObject",
+						"Object",
+						"->"
+					],
+					[
+						"url",
+						"Variant",
+						"->"
+					]
+				],
+				"Summary": ""
+			}
+		},
+		"driveFiles": {
+			"new()": {
+				"Syntax": "**.new**( *authObject* : Object; *name* : Variant; *type* : Variant; *parentID* : Variant )",
+				"Params": [
+					[
+						"authObject",
+						"Object",
+						"->"
+					],
+					[
+						"name",
+						"Variant",
+						"->"
+					],
+					[
+						"type",
+						"Variant",
+						"->"
+					],
+					[
+						"parentID",
+						"Variant",
+						"->"
+					]
+				],
+				"Summary": ""
+			}
+		},
+		"_jwt": {
+			"new()": {
+				"Syntax": "**.new**()",
+				"Params": [],
+				"Summary": ""
+			}
+		},
+		"driveFile": {
+			"new()": {
+				"Syntax": "**.new**( *authObject* : Object; *idOrPath* : Text; *metadataToRetrieve* : Variant )",
+				"Params": [
+					[
+						"authObject",
+						"Object",
+						"->"
+					],
+					[
+						"idOrPath",
+						"Text",
+						"->"
+					],
+					[
+						"metadataToRetrieve",
+						"Variant",
+						"->"
+					]
+				],
+				"Summary": ""
+			}
+		},
+		"calendar": {
+			"new()": {
+				"Syntax": "**.new**()",
+				"Params": [],
+				"Summary": ""
+			}
+		},
+		"_comms": {
+			"new()": {
+				"Syntax": "**.new**( *connectionMethod* : Variant )",
+				"Params": [
+					[
+						"connectionMethod",
+						"Variant",
+						"->"
+					]
+				],
+				"Summary": ""
+			}
+		}
+	},
+	"auth": {
+		"getHeader()": {
+			"Syntax": "**.getHeader**( *forceRefresh* : Variant )->oHeader : Object",
+			"Params": [
+				[
+					"forceRefresh",
+					"Variant",
+					"->"
+				],
+				[
+					"oHeader",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"_inheritedFrom_": "_comms"
+	},
+	"spreadsheet": {
+		"appendValues()": {
+			"Syntax": "**.appendValues**( *range* : Text; *valuesObject* : Object; *valueInputOption* : Text; *insertDataOption* : Variant; *includeValuesInResponse* : Variant; *responseValueRenderOption* : Variant; *responseDateTimeRenderOption* : Variant )",
+			"Params": [
+				[
+					"range",
+					"Text",
+					"->"
+				],
+				[
+					"valuesObject",
+					"Object",
+					"->"
+				],
+				[
+					"valueInputOption",
+					"Text",
+					"->"
+				],
+				[
+					"insertDataOption",
+					"Variant",
+					"->"
+				],
+				[
+					"includeValuesInResponse",
+					"Variant",
+					"->"
+				],
+				[
+					"responseValueRenderOption",
+					"Variant",
+					"->"
+				],
+				[
+					"responseDateTimeRenderOption",
+					"Variant",
+					"->"
+				]
+			],
+			"Summary": ""
+		},
+		"copySheetToSpreadsheet()": {
+			"Syntax": "**.copySheetToSpreadsheet**( *sheetName* : Text; *targetSpreadsheetId* : Text )->sheet : Object",
+			"Params": [
+				[
+					"sheetName",
+					"Text",
+					"->"
+				],
+				[
+					"targetSpreadsheetId",
+					"Text",
+					"->"
+				],
+				[
+					"sheet",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"load()": {
+			"Syntax": "**.load**( *rangeString* : Variant; *includeGridData* : Variant )->oSheetData : Object",
+			"Params": [
+				[
+					"rangeString",
+					"Variant",
+					"->"
+				],
+				[
+					"includeGridData",
+					"Variant",
+					"->"
+				],
+				[
+					"oSheetData",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"getValues()": {
+			"Syntax": "**.getValues**( *range* : Text; *majorDimension* : Variant; *valueRenderOption* : Variant; *dateTimeRenderOption* : Variant )->oValues : Object",
+			"Params": [
+				[
+					"range",
+					"Text",
+					"->"
+				],
+				[
+					"majorDimension",
+					"Variant",
+					"->"
+				],
+				[
+					"valueRenderOption",
+					"Variant",
+					"->"
+				],
+				[
+					"dateTimeRenderOption",
+					"Variant",
+					"->"
+				],
+				[
+					"oValues",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"renameSheet()": {
+			"Syntax": "**.renameSheet**( *sheetID* : Integer; *newName* : Text )->success : Boolean",
+			"Params": [
+				[
+					"sheetID",
+					"Integer",
+					"->"
+				],
+				[
+					"newName",
+					"Text",
+					"->"
+				],
+				[
+					"success",
+					"Boolean",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"findSheetWithName()": {
+			"Syntax": "**.findSheetWithName**( *sheetName* : Text )->oResult : Collection",
+			"Params": [
+				[
+					"sheetName",
+					"Text",
+					"->"
+				],
+				[
+					"oResult",
+					"Collection",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"createSpreadsheet()": {
+			"Syntax": "**.createSpreadsheet**()->success : Boolean",
+			"Params": [
+				[
+					"success",
+					"Boolean",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"entitySelectionToCollection()": {
+			"Syntax": "**.entitySelectionToCollection**( *es* : 4D.EntitySelection; *attributes* : Collection )->collection : Collection",
+			"Params": [
+				[
+					"es",
+					"4D.EntitySelection",
+					"->"
+				],
+				[
+					"attributes",
+					"Collection",
+					"->"
+				],
+				[
+					"collection",
+					"Collection",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"setValues()": {
+			"Syntax": "**.setValues**( *range* : Text; *valuesObject* : Object; *valueInputOption* : Text; *includeValuesInResponse* : Variant; *responseValueRenderOption* : Variant; *responseTimeRenderOption* : Variant )->oSheetData : Object",
+			"Params": [
+				[
+					"range",
+					"Text",
+					"->"
+				],
+				[
+					"valuesObject",
+					"Object",
+					"->"
+				],
+				[
+					"valueInputOption",
+					"Text",
+					"->"
+				],
+				[
+					"includeValuesInResponse",
+					"Variant",
+					"->"
+				],
+				[
+					"responseValueRenderOption",
+					"Variant",
+					"->"
+				],
+				[
+					"responseTimeRenderOption",
+					"Variant",
+					"->"
+				],
+				[
+					"oSheetData",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"getSheetNames()": {
+			"Syntax": "**.getSheetNames**()->sheetNames : Collection",
+			"Params": [
+				[
+					"sheetNames",
+					"Collection",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"duplicateSheet()": {
+			"Syntax": "**.duplicateSheet**( *sourceSheetID* : Integer; *insertSheetIndex* : Integer; *newSheetID* : Variant; *newSheetName* : Variant )->oReturn : Object",
+			"Params": [
+				[
+					"sourceSheetID",
+					"Integer",
+					"->"
+				],
+				[
+					"insertSheetIndex",
+					"Integer",
+					"->"
+				],
+				[
+					"newSheetID",
+					"Variant",
+					"->"
+				],
+				[
+					"newSheetName",
+					"Variant",
+					"->"
+				],
+				[
+					"oReturn",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"_inheritedFrom_": "_comms"
+	},
+	"driveFiles": {
+		"getID()": {
+			"Syntax": "**.getID**()->id : Text",
+			"Params": [
+				[
+					"id",
+					"Text",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"set type()": {
+			"Syntax": "**.set type**( *type* : Text )",
+			"Params": [
+				[
+					"type",
+					"Text",
+					"->"
+				]
+			],
+			"Summary": ""
+		},
+		"_inheritedFrom_": "_comms"
+	},
+	"_jwt": {
+		"HMAC()": {
+			"Syntax": "**.HMAC**()",
+			"Params": [],
+			"Summary": ""
+		},
+		"verify()": {
+			"Syntax": "**.verify**()",
+			"Params": [],
+			"Summary": ""
+		},
+		"sign()": {
+			"Syntax": "**.sign**()",
+			"Params": [],
+			"Summary": ""
+		}
+	},
+	"driveFile": {
+		"getName()": {
+			"Syntax": "**.getName**()->name : Text",
+			"Params": [
+				[
+					"name",
+					"Text",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"moveTo()": {
+			"Syntax": "**.moveTo**( *toFolderID* : Text )->success : Boolean",
+			"Params": [
+				[
+					"toFolderID",
+					"Text",
+					"->"
+				],
+				[
+					"success",
+					"Boolean",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"getType()": {
+			"Syntax": "**.getType**()->filetype : Text",
+			"Params": [
+				[
+					"filetype",
+					"Text",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"getPath()": {
+			"Syntax": "**.getPath**()->path : Text",
+			"Params": [
+				[
+					"path",
+					"Text",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"getId()": {
+			"Syntax": "**.getId**()->id : Text",
+			"Params": [
+				[
+					"id",
+					"Text",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"_inheritedFrom_": "_comms"
+	},
+	"calendar": {
+		"eventsList()": {
+			"Syntax": "**.eventsList**()",
+			"Params": [],
+			"Summary": ""
+		},
+		"eventsInsert()": {
+			"Syntax": "**.eventsInsert**()",
+			"Params": [],
+			"Summary": ""
+		},
+		"setID()": {
+			"Syntax": "**.setID**()",
+			"Params": [],
+			"Summary": ""
+		},
+		"getCalendarList()": {
+			"Syntax": "**.getCalendarList**()",
+			"Params": [],
+			"Summary": ""
+		},
+		"eventDelete()": {
+			"Syntax": "**.eventDelete**()",
+			"Params": [],
+			"Summary": ""
+		},
+		"eventsGet()": {
+			"Syntax": "**.eventsGet**()",
+			"Params": [],
+			"Summary": ""
+		},
+		"createCalendar()": {
+			"Syntax": "**.createCalendar**()",
+			"Params": [],
+			"Summary": ""
+		},
+		"_inheritedFrom_": "_comms"
+	},
+	"_comms": {
+		"parseError()": {
+			"Syntax": "**.parseError**()->error : Text",
+			"Params": [
+				[
+					"error",
+					"Text",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"URL_Escape()": {
+			"Syntax": "**.URL_Escape**()",
+			"Params": [],
+			"Summary": ""
+		},
+		"http()": {
+			"Syntax": "**.http**( *httpMethod* : Text; *url* : Text; *body* : Text; *header* : Variant )->oResult : Object",
+			"Params": [
+				[
+					"httpMethod",
+					"Text",
+					"->"
+				],
+				[
+					"url",
+					"Text",
+					"->"
+				],
+				[
+					"body",
+					"Text",
+					"->"
+				],
+				[
+					"header",
+					"Variant",
+					"->"
+				],
+				[
+					"oResult",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		}
+	}
+}

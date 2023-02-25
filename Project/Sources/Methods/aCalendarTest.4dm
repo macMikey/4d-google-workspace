@@ -1,18 +1,7 @@
 //%attributes = {}
-$username:=getPrivateData("testuser.txt")
-$key:=getPrivateData("google-key.json")
-$scopes:=getPrivateData("scopes.txt")
+initializeAuthObject
+
 $apiKey:=getPrivateData("calendar-apikey.txt")
-
-$cr:=Char:C90(Carriage return:K15:38)
-
-//<initialize google auth object>
-C_OBJECT:C1216(<>a)  //define interprocess b/c otherwise doesn't survive exiting the execution (IKR?)
-If (OB Is empty:C1297(<>a))
-	<>a:=cs:C1710.auth.new($username; $scopes; $key; "native")  //"native" isn't implemented, yet, though.
-End if 
-//</initialize google auth object>
-
 
 var $c : cs:C1710.calendar
 
