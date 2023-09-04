@@ -293,18 +293,19 @@ Function load($rangeString : Variant; $includeGridData : Variant)->$oSheetData :
 	//<handle params>
 	var $oResult : Object
 	
-	$rangeString:=""
-	$includeGridData:="false"
+	$rangeString:=$rangeString || ""
+	If ($rangeString#"")
+		$rangeString:="ranges="+This:C1470._queryRange($rangeString)
+	End if   //$rangeString#""
 	
+	$includeGridDataString:="false"
 	If (Count parameters:C259>=2)
-		$includeGridData:=Lowercase:C14(String:C10($includeGridData))
+		$includeGridDataString:=Lowercase:C14(String:C10($includeGridData))
 	End if 
 	//</handle params>
 	
 	
-	$queryString:="?"+\
-		This:C1470._queryRange($rangeString)+"&"+\
-		"includeGridData="+$includeGridData
+	$queryString:="?"+$rangeString+"&"+"includeGridData="+$includeGridDataString
 	
 	
 	$url:=This:C1470._endpoint+"/"+This:C1470._spreadsheetId+$queryString

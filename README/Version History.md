@@ -2,6 +2,29 @@
 
 
 
+## v. 0.3.0
+
+* Sheet
+  * fix bugs in spreadsheet.load
+  * example for how to create a new spreadsheet using sheet data from another spreadsheet
+* Modified **getPrivateData()** to use **Private** at the level **above** the repo, per suggestions on the NUG
+
+
+
+## v. 0.2.0
+
+* drive
+   * added driveFile and driveFiles classes
+* spreadsheet
+   * added copySheetToSpreadsheet
+   * added createSpreadsheet
+   * added renameSheet
+* include the syntax file so you can see the syntax of the component in the explorer
+* docs
+* bugs
+
+
+
 ## v. 0.1.0
 
 It's been working for almost two years, so it probably deserves 1.0.0, but not everything that could be implemented, either.

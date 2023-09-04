@@ -1,5 +1,10 @@
 //%attributes = {}
-//create a spreadsheet named "test sheet", with two sheets, called "Test1" and "Test2"
+// create spreadsheet by "copying" another spreadsheet's sheet
+// what we're really doing is grabbing the sheet data, then using it as the data for a new sheet in a new spreadsheet.
+
+
+
+//create a spreadsheet named "test sheet", with the "TEMPLATE" sheet from the "TEMPLATE" spreadsheet.
 
 initializeAuthObject
 
@@ -22,12 +27,10 @@ $s:=cs:C1710.spreadsheet.new(<>a)
 $properties:=New object:C1471("title"; "test sheet")
 $s.spreadsheet:=New object:C1471("properties"; $properties)
 
-// define two sheets to add
-$s.spreadsheet.sheets:=New collection:C1472()
-$sheet1:=New object:C1471("properties"; New object:C1471("title"; "Test1"; "index"; 1))
-$sheet2:=New object:C1471("properties"; New object:C1471("title"; "Test2"; "index"; 2))
-$s.spreadsheet.sheets.push($sheet1)
-$s.spreadsheet.sheets.push($sheet2)
+$templateURL:=getPrivateData("ipc-template-url.txt")
+$templateSS:=cs:C1710.spreadsheet.new(<>a; $templateURL)
+$templateSS.load("TEMPLATE"; True:C214)
+$s.spreadsheet.sheets:=$templateSS.sheetData.sheets
 
 $success:=$s.createSpreadsheet()
 If (Not:C34($success))  //fail
@@ -57,23 +60,5 @@ End if
 $success:=$ssf.moveTo($folderID)
 ASSERT:C1129($success)
 //</bonus: move the spreadsheet from the root folder to a different location>
-
-
-
-//<double-bonus: copy the TEMPLATE sheet from a different spreadsheet to the new spreadsheet>
-$templateURL:=getPrivateData("ipc-template-url.txt")
-$templateSS:=cs:C1710.spreadsheet.new(<>a; $templateURL)
-$newSheet:=$templateSS.copySheetToSpreadsheet("TEMPLATE"; $ssID)
-ASSERT:C1129($newSheet#Null:C1517)
-//</double-bonus: copy the TEMPLATE sheet from a different spreadsheet to the new spreadsheet>
-
-
-
-//<triple-bonus: rename the "Copy of TEMPLATE" sheet to "TEMPLATE">
-$success:=$s.renameSheet($newSheet.sheetId; "TEMPLATE")
-ASSERT:C1129($success)
-//<triple-bonus: rename the "Copy of Template" sheet>
-
-$s.load()  // to make $s receive the updates. This does not happen, manually, to reduce the network operations.
 
 ALERT:C41("Done.")

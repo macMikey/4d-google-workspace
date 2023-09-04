@@ -6,6 +6,8 @@ Extends the *_comms* class.
 
 Wherever appropriate, I have copied/pasted information directly from Google's documentation. In some cases I have paraphrased or rewritten for clarity.
 
+Extra spaces added in the examples to make them easier to read.
+
 
 
 ## Contents

@@ -5,9 +5,9 @@
 
 C_OBJECT:C1216(<>a)
 If (OB Is empty:C1297(<>a))
-	$username:=getPrivateData("testuser.txt")
+	$username:=getPrivateData("google-user.txt")
 	$key:=getPrivateData("google-key.json")
-	$scopes:=getPrivateData("scopes.txt")
+	$scopes:=getPrivateData("google-scopes.txt")
 	<>a:=cs:C1710.auth.new($username; $scopes; $key; "native")  //"native" isn't implemented, yet, though.
 	If (Not:C34(Undefined:C82(<>a.error)))
 		TRACE:C157

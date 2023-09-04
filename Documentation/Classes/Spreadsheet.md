@@ -6,6 +6,12 @@ Extends the *_comms* class.
 
 Wherever appropriate, I have copied/pasted information directly from Google's documentation. In some cases I have paraphrased or rewritten for clarity.
 
+Extra spaces added in the examples to make them easier to read.
+
+
+
+Spreadsheets are complicated. I have found that a lot of trial-and-error has been the best way to learn how to implement them.
+
 
 
 ## Contents
@@ -47,16 +53,16 @@ spreadsheetId | Google's capitalization is not spreadsheetID, it's spreadsheetId
 |Name|Mandatory | Datatype|Description|
 |--|--|--|--|
 |auth|Mandatory| object |Object obtained from a *cs.google.comms* class via **getAuthAccess** |
-|URL|Optional<br>**Omit if creating a new spreadsheet (not a new sheet)** |Text|The URL of the spreadsheet you want to work with. The class will strip out the parts it needs, so just load the spreadsheet in your browser, then copy the entire URL from the URL field.|
+|URL (or, just the spreadsheetId part of the URL)|Optional<br>**Omit if creating a new spreadsheet (not a new sheet)** |Text|Either the URL of the spreadsheet you want to work with (the class will strip out the parts it needs, so you could just load the spreadsheet in your browser, then copy the entire URL from the URL field) **or** the SpreadsheetId part of the URL (the part that follows the "/d/")|
 
 
 
 ### Constructor Example
 
 ```4d
-C_OBJECT($s)
-If (OB Is empty ($s))
-  $s:=cs.cs.google.spreadsheet.new(oGoogleComms;$url)
+var $s : cs.google.spreadsheet
+If ( OB Is empty ( $s ) )
+  $s := cs.cs.google.spreadsheet.new ( oGoogleComms ; $url )
   $s.load()
 End if
 ```
@@ -190,7 +196,8 @@ End If
 
 * Implements [copyTo](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.sheets/copyTo)
 * Copies a single sheet (the current sheet) from one spreadsheet to another
-* Google does not support duplicating a spreadsheet. This is the closest you can get to that
+* Google does not support duplicating a spreadsheet. This is one way to achieve something similar (note that you can also achieve a deep copy of a spreadsheet, manually. See the example in [createSpreadshet](#createspreadsheet).
+* **You must reload the spreadsheet for the changes to appear. This does not happen, in case this operation is part of a series of operations, such as copying the sheet followed by renaming it.**
 * If successful, returns a [Sheet Object](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/sheets#SheetProperties)
 * If successful, the new sheet name will be "Copy of " + *$sheetName*. That is what Google names the sheet.
 * If, after copying the sheet, you want to do something like modifying the sheet's name or position, use [renameSheet](#renamesheet)
@@ -216,8 +223,8 @@ $success := $s.renameSheet ( $newSheet.sheetId ; $sheetName ) // rename sheet to
 
 Implements [spreadsheets.create](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/create)
 
-* Any options or parameters you wish to specify can be set in the [spreadsheet properties](#public-properties) of the **cs.google.spreadsheet** object before calling this function. See the example, below.
-* The created spreadsheet is placed at the user's root folder. To move it, see the example in the [driveFile.moveFile](driveFile.md#move-file) documentation.
+* Any options or parameters you wish to specify, including any sheets you want to immediately add can be set in the **This.spreadsheet** [spreadsheet properties](#public-properties) of this object before calling this function. See the example, below.
+* The created spreadsheet is placed at the user's root folder. To move it, see the second example in the [driveFile.moveFile](driveFile.md#move-file) documentation.
 * Loads the new spreadsheet into `.spreadsheet` (see [Public Properties](#public-properties). The structure of that object is [Spreadsheet](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#Spreadsheet)
 
 
@@ -231,11 +238,13 @@ If successful:
 
 
 
-#### Example
+#### Examples
+
+Create a new spreadsheet in the user's root folder
 
 ```4d
-$s := cs.google.spreadsheet.new ( oGoogleComms ) // no url b/c we're creating a sheet
-$properties := new object ( "title" ; "test sheet" )
+$s := cs.google.spreadsheet.new ( $auth ) // no url b/c we're creating a sheet
+$properties := new object ( "title" ; "test spreadsheet" )
 $s.spreadsheet : =New object ( "properties" ; $properties )
 // define two sheets to add
 $s.spreadsheet.sheets := New Collection()
@@ -244,15 +253,41 @@ $sheet2 := New object ( "properties" ; New object ( "title" ; "Sheet2" ; "index"
 $s.spreadsheet.sheets.push ( $sheet1 )
 $s.spreadsheet.sheets.push ( $sheet2 )
 
-$oResult := $s.createSpreadsheet () 
-If ( $oResult = Null ) //fail
-   $errorMessage := $s.parseError ()
-   return $errorMessage
-End If
-// $s.spreadsheet will be replaced with the properties of the spreadsheet
+$success := $s.createSpreadsheet ()  // $s.spreadsheet will be replaced with the properties of the spreadsheet
+ASSERT ( $success )
 ```
 
 
+
+* Create a new spreadsheet *by copying a template sheet from another spreadsheet*.
+
+* Move the new spreadsheet to a new location
+
+```4d
+$s := cs.spreadsheet.new ( $auth )
+$properties := New object ( "title" ; "test spreadsheet" )
+$s.spreadsheet := New object ( "properties" ; $properties )
+$templateSS := cs.spreadsheet.new ( $auth ; $templateURL )
+$templateSS.load ( "TEMPLATE" ; True ) // in the TEMPLATE sheet, load the grid data, which includes the cell metadata
+$s.spreadsheet.sheets := $templateSS.sheetData.sheets // deep-copies the TEMPLATE sheet into the new spreadsheet
+$success := $s.createSpreadsheet ()
+ASSERT ($success)
+// spreadsheet is at the root folder. Now, move it.
+
+$ssID:=$s._spreadsheetId
+$ssf := cs.google.driveFile.new ( $auth ; $ssID )  // the spreadsheet file
+$fs := cs.google.driveFiles.new ( $auth ; "inspection logs" ; "folder" )  // find the folder with the name "inspection logs"
+$numMatches := $fs.files.length
+ASSERT ( $numMatches = 1 )
+
+$folderID := $fs.getID()
+ASSERT ( $folderID # Null )
+
+$success := $ssf.moveTo ( $folderID )
+ASSERT($success)
+```
+
+ 
 
 #### References
 
@@ -261,6 +296,8 @@ End If
 [Spreadsheets Object](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#Spreadsheet)
 
 [Google Sheets API Guide For Creating A Spreadsheet](https://developers.google.com/sheets/api/guides/create#work_with_folders)
+
+
 
 
 
@@ -346,25 +383,25 @@ Returns a collection of sheet (tab) objects that have the name *sheetName*
 [with the following properties](https://developers.google.com/sheets/api/samples/sheet#determine_sheet_id_and_other_properties)
 
 ```
-[0..n]                                  : (collection)
-    ├── .properties                     : (object)
-    │    ├── .gridProperties            : (object)
-    │    │   ├── .columnCount           : number of columns
-    │    │   ├── .frozenColumnCount     : number of rows
-    │    │   ├── .frozenRowCount        : number of frozen rows
-    │    │   └── .rowCount              : number of rows
-    │    ├── .index                     : integer - position of the sheet (tab) in the spreadsheet
-    │    ├── .sheetId                   : integer id used to reference the sheet
-    │    ├── .sheetType                 : (add when you find out)
-    │    └── .title                     : name of the sheet
-    └── .protectedRanges                : (collection)
-         [0..n]                         : (object)
-             ├── .editors               : (object)
-             │   └── .users             : (collection)
-             │       [0..n]             : text
-             ├── .protectedRangeId      : integer
-             ├── .range                 : (object)
-             └── .requestingUserCanEdit : boolean
+[0..n]                                 : (collection)
+    ├── properties                     : (object)
+    │    ├── gridProperties            : (object)
+    │    │   ├── columnCount           : number of columns
+    │    │   ├── frozenColumnCount     : number of rows
+    │    │   ├── frozenRowCount        : number of frozen rows
+    │    │   └── rowCount              : number of rows
+    │    ├── index                     : integer - position of the sheet (tab) in the spreadsheet
+    │    ├── sheetId                   : integer id used to reference the sheet
+    │    ├── sheetType                 : (add when you find out)
+    │    └── title                     : name of the sheet
+    └── protectedRanges                : (collection)
+         [0..n]                        : (object)
+             ├── editors               : (object)
+             │   └── users             : (collection)
+             │       [0..n]            : text
+             ├── protectedRangeId      : integer
+             ├── range                 : (object)
+             └── requestingUserCanEdit : boolean
                          
 ```
 
@@ -372,13 +409,9 @@ Returns a collection of sheet (tab) objects that have the name *sheetName*
 
 ### getSheetNames () -> sheetNames : collection <a name="getsheetnames"></a>
 
-1. Reloads all sheet data
-2. Returns a collection with the names of the sheets (tabs) in the spreadsheet.
+* Reloads all sheet data
+* Returns a collection with the names of the sheets (tabs) in the spreadsheet.
 
-|Property|Description|
-|--|--|
-|length|0..n - number of values in the collection|
-|0..(length-1)|Collection indicies start at 0 and run to `length-1`.  Each element in the collection is the name of a sheet (tab)|
 
 
 
@@ -386,8 +419,15 @@ Returns a collection of sheet (tab) objects that have the name *sheetName*
 
 Implements [Spreadsheet.values.get](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/get)
 
-1. Reloads all cell values
-2. Returns an object containing a [valueRange](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values#ValueRange) from a spreadsheet. The caller must specify the spreadsheet ID and a range.
+* Reloads all cell values
+
+* Returns an object containing a [valueRange](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values#ValueRange) from a spreadsheet. The caller must specify the spreadsheet ID and a range.
+* Does not update the properties of the spreadsheet object.
+* Does not fill empty trailing rows or columns (the range returned is the size of the sheet, not the size of the data within the sheet)
+
+
+
+#### Parameters:
 
 |Parameter Name|Required?|Parameter Type|Default|Description|
 |--|--|--|--|--|
@@ -404,26 +444,40 @@ The object contains a [valueRange](https://developers.google.com/sheets/api/refe
 
 |Field|Contents|Description|
 |--|--|--|
-|"range"|String|The range the values cover, in A1 notation. For output, this range indicates the entire requested range, even though the values will exclude trailing rows and columns. When appending values, this field represents the range to search for a table, after which values will be appended.|
-|"majorDimension"|**ROWS**<br>**COLUMNS**|The major dimension of the values.  For output, if the spreadsheet data is: A1=1,B1=2,A2=3,B2=4, then requesting range=A1:B2,majorDimension=ROWS will return [[1,2],[3,4]], whereas requesting range=A1:B2,majorDimension=COLUMNS will return [[1,3],[2,4]].|
-|"values"|array ([ListValue](https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#google.protobuf.ListValue) format)|The data that was read or to be written. This is an array of arrays, the outer array representing all the data and each inner array representing a major dimension. Each item in the inner array corresponds with one cell.<br>**For output, empty trailing rows and columns will not be included.**|
+|range|String|The range the values cover, in A1 notation. For output, this range indicates the entire requested range, even though the values will exclude trailing rows and columns. When appending values, this field represents the range to search for a table, after which values will be appended.|
+|majorDimension|**ROWS**<br>**COLUMNS**|The major dimension of the values.  For output, if the spreadsheet data is: A1=1,B1=2,A2=3,B2=4, then requesting range=A1:B2,majorDimension=ROWS will return [[1,2],[3,4]], whereas requesting range=A1:B2,majorDimension=COLUMNS will return [[1,3],[2,4]].|
+|values|array ([ListValue](https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#google.protobuf.ListValue) format)|The data that was read or to be written. This is an array of arrays, the outer array representing all the data and each inner array representing a major dimension. Each item in the inner array corresponds with one cell.<br>**For output, empty trailing rows and columns will not be included.**|
 
 
 
 #### Examples:
 
+Get the values for a whole sheet
+
 ```4d
-$oValues:=$ss.getValues("Sheet1!A1:B4")
-For ($row; 1; $oValues.values.length-1)
-   For ($col; 1; $oValues.values[$row].length-1)
-      If ($oValues.values[$row][$col]="1")
-			   ALERT ( "Value is 1." )
-			End if
-   End for
-End for
+$oValues := $ss.getValues ( "Sheet1" )
 ```
+
+
+
+Get the values in a range on a sheet, alert if any of the cells contain "1"
+
 ```4d
-$oValues:=$ss.getValues("Sheet1!A1:B2";"ROWS";"UNFORMATTED_VALUE";"FORMATTED_STRING")
+$oValues := $ss.getValues ( "Sheet1" )
+For ( $row ; 1 ; $oValues.values.length - 1 )
+   For ( $col ; 1 ; $oValues.values [ $row ] . length - 1 )
+      If ( $oValues.values [ $row ] [ $col ] = "1" )
+			   ALERT ( "Value in " + String ( $row ) + ", " + String ( $col ) + " is 1." )
+			End if //$oValues.values[$row][$col]="1"
+   End for //$col; 1; $oValues.values[$row].length-1
+End for //$row; 1; $oValues.values.length-1
+```
+
+
+Get the values in a range, with other parameters specified.
+
+```4d
+$oValues := $ss.getValues ( "Sheet1!A1:B2" ; "ROWS" ; "UNFORMATTED_VALUE" ; "FORMATTED_STRING" )
 ```
 
 
@@ -432,8 +486,10 @@ $oValues:=$ss.getValues("Sheet1!A1:B2";"ROWS";"UNFORMATTED_VALUE";"FORMATTED_STR
 
 Implements [Spreadsheets.get](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/get#body.QUERY_PARAMETERS.ranges)
 
-Returns the spreadsheet at the given ID. The caller must specify the spreadsheet ID.
-By default, data within grids will not be returned. You can include grid data one of two ways:
+Returns the spreadsheet at the given ID, and populates *This.sheetData*.
+
+By default, data within grids (cell metadata) will not be returned. You can include grid data one of two ways:
+
   1. Specify a field mask listing your desired fields using the fields URL parameter in HTTP
   2. Set the includeGridData URL parameter to true. If a field mask is set, the includeGridData parameter is ignored
 For large spreadsheets, it is recommended to retrieve only the specific fields of the spreadsheet that you want.
@@ -445,8 +501,8 @@ To retrieve only subsets of the spreadsheet, use the ranges URL parameter. Multi
 
 |Parameter Name|Required?|Parameter Type|Default|Description|
 |--|--|--|--|--|
-|range|No|Text|Null|A range, in A1 format.  Multiple ranges can be separated with commas|
-|includeGridData|No|Boolean|False|Specify whether to include grid data|
+|range|No|Text|Null|A [valueRange](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values#ValueRange), in A1 format.  Multiple ranges can be separated with commas. Note that a range can be empty (load everything) or it can just specify the name of a single sheet.|
+|includeGridData|No|Boolean|False|Specify whether to include [grid data](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/sheets#GridData) (the metadata of the cells, such as their colors, borders, dimensions, etc.|
 
 
 
@@ -457,18 +513,46 @@ An object with the following fields:
 |Fieldname|Description|
 |--|--|
 |status|http status.  *200* means success|
-|value|If successful, the response body contains an instance of [Spreadsheet](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#Spreadsheet).<br> If unsuccessful/error it will contain an error object.|
+|value|If successful, the response body contains an instance of [Spreadsheet](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#Spreadsheet).<br>If unsuccessful/error it will contain an error object.|
 
-**value subfields (assuming success)**
 
-|*value.*Fieldname|Type|Description|
+
+#### This.sheetData properties (assuming success)
+
+If we are able to load the range, 
+
+|*This.sheetData.*Fieldname|Type|Description|
 |--|--|--|
-|value.*spreadsheetId*|string|The ID of the spreadsheet.|
-|value.*properties*|object|[Overall properties of a spreadsheet.](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#SpreadsheetProperties)|
-|value.*sheets*|object|[The sheets that are part of a spreadsheet.](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/sheets#Sheet)|
-|value.*namedRanges*|object|[The named ranges defined in a spreadsheet.](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#NamedRange)|
-|value.*spreadsheetUrl*|string|The url of the spreadsheet.|
-|value.*developerMetadata*|object|[The developer metadata associated with a spreadsheet.](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.developerMetadata#DeveloperMetadata)|
+|properties|Object|[Spreadsheet Properties](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#SpreadsheetProperties)|
+|sheets|Collection|[The spreadsheet's sheets](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/sheets#Sheet).<br>Even though you can obtain values by traversing this tree, it is easier to retrieve them using the [getValues](#getvalues) function.|
+|spreadsheetId|string|The ID of the spreadsheet.|
+|spreadsheetUrl|string|The url of the spreadsheet ( i.e. "https://docs.google.com/spreadsheets/d/" + This.sheetData.spreadsheetId )|
+
+
+
+#### Example This.sheetData property layout
+
+```
+This.sheetData
+├── properties                        : Object
+│   ├── autoRecalc                    : Text
+│   ├── defaultFormat                 : Object
+│   │   └──  <properties> 
+│   ├── locale                        : Text
+│   ├── spreadsheetTheme              : Object
+│   │   └──  <properties> 
+│   ├── timeZone                      : Text
+│   ├── title                         : Text
+├── sheets                            : Collection
+│   └── [ 0..n ]
+│       ├── data                      : Collection
+│       │   └── [ 0..n ]              : Object
+│       │       └── <properties>      : Collection
+│       └── properties                : Object
+│           └── <properties>
+├── spreadsheetId											: Text
+└── spreadsheetUrl										: Text
+```
 
 
 
@@ -491,7 +575,6 @@ Else
    $errorMessage:=$ss.parseError()
    ALERT($errorMessage)
 End If
-
 ```
 ```4d
 $oResult:=$ss.load(;True)`This is a valid range for loading, but not for updating.
@@ -501,7 +584,6 @@ Else
    $errorMessage:=$ss.parseError()
    ALERT($errorMessage)
 End If
-
 ```
 
 
@@ -531,6 +613,7 @@ End If
 ### renameSheet ( $sheetId : Integer ; $newName : Text ) -> $success : Boolean
 
 * Changes the name (title) of *$sheetId* to *$newName*
+* **You must reload the spreadsheet for the changes to appear in your spreadsheet object. This is not done, automatically, in case renaming is part of a series of operations, to minimize the number of network operations.**
 * If successful, returns *True*
 
 
@@ -572,6 +655,8 @@ Implements [Spreadsheet.values.update](https://developers.google.com/sheets/api/
 
 The *majorDimension* is specified in the body
 
+
+
 #### Return Object
 An object with the following fields:
 
@@ -579,6 +664,8 @@ An object with the following fields:
 |--|--|
 |status|http status.  *200* means success|
 |value|If successful, it will contain an instance of [UpdateValuesResponse](https://developers.google.com/sheets/api/reference/rest/v4/UpdateValuesResponse) (see below).<br> If unsuccessful/error it will contain an error object.|
+
+
 
 **value subfields (assuming success)**
 
@@ -591,33 +678,36 @@ An object with the following fields:
 |value.*updatedCells*|Integer|The number of cells updated.|
 |value.*updatedData*|object ([ValueRange](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values#ValueRange))|The values of the cells after updates were applied. This is only included if the request's includeValuesInResponse field was true.|
 
+
+
 #### Examples
+
 ```4d
-$oResult:=$ss.setValues("Sheet1!A1:B4";$oValues)
-If ($oResult#Null)
+$oResult := $ss.setValues ( "Sheet1!A1:B4" ; $oValues )
+If ( $oResult # Null )
      //success
 Else
-   $errorMessage:=$ss.parseError()
-   ALERT($errorMessage)
+   $errorMessage := $ss.parseError()
+   ALERT ( $errorMessage )
 End If
 ```
 ```4d
-$oResult:=$ss.setValues("Sheet1!A1:B2";$oValues;"USER_ENTERED";True;"UNFORMATTED_VALUE";"FORMATTED_STRING")
-If ($oResult#Null)
+$oResult := $ss.setValues ( "Sheet1!A1:B2" ; $oValues ; "USER_ENTERED" ; True ; "UNFORMATTED_VALUE" ; "FORMATTED_STRING" )
+If ( $oResult # Null )
      //success
 Else
-   $errorMessage:=$ss.parseError()
-   ALERT($errorMessage)
+   $errorMessage := $ss.parseError()
+   ALERT( $errorMessage )
 End If
 ```
 
 ```4d
-$oResult:=$ss.setValues($ss.sheetData.range;$oValues;"USER_ENTERED";True;"UNFORMATTED_VALUE";"FORMATTED_STRING")  // can get the range from the sheetData.range property.
-If ($oResult#Null)
+$oResult := $ss.setValues ( $ss.sheetData.range ; $oValues ; "USER_ENTERED" ; True ; "UNFORMATTED_VALUE" ; "FORMATTED_STRING" )  // can get the range from the sheetData.range property.
+If ( $oResult#Null )
      //success
 Else
-   $errorMessage:=$ss.parseError()
-   ALERT($errorMessage)
+   $errorMessage := $ss.parseError()
+   ALERT ( $errorMessage )
 End If
 ```
 
@@ -633,14 +723,14 @@ Property Name | Sub-property Name | Description
 -- | -- | --
 sheetData | |Information returned by various commands:<br>[appendValues](#appendvalues)<br>[load](#load)<br>[setValues](#setvalues)
 spreadsheet | |
- |spreadsheetId | **Read-Only** (String). This is embedded in the URL that is sent to Google. It is specified in the **cs.google.spreadsheet** constructor 
- |properties | [Spreadsheet Properties Object](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#SpreadsheetProperties)
- | sheets | [Sheet Object](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/sheets#Sheet)
- | namedRanges | [Named Range object](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#NamedRange)
- | spreadsheetURL | **Read-Only** (String). This is the URL that is set in the **cs.google.spreadsheet** constructor. 
- | developerMetadata | [Developer Metadata Object](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.developerMetadata#DeveloperMetadata)
- | dataSources | [Data Sources Object](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#DataSource)
- | dataSourceSchedules | [Data Source Refresh Schedule](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#DataSourceRefreshSchedule)
+spreadsheetId | **Read-Only** (String). This is embedded in the URL that is sent to Google. It is specified in the **cs.google.spreadsheet** constructor |
+properties | [Spreadsheet Properties Object](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#SpreadsheetProperties)|
+ sheets | [Sheet Object](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/sheets#Sheet)|
+ namedRanges | [Named Range object](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#NamedRange)|
+ spreadsheetUrl | **Read-Only** (String). This is the URL that is set in the **cs.google.spreadsheet** constructor. |
+ developerMetadata | [Developer Metadata Object](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.developerMetadata#DeveloperMetadata)|
+ dataSources | [Data Sources Object](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#DataSource)|
+ dataSourceSchedules | [Data Source Refresh Schedule](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#DataSourceRefreshSchedule)|
 status| | http status of the request
 
 
@@ -656,9 +746,11 @@ status| | http status of the request
 |Field|Description|
 |--|--|
 |_auth | **cs.google._auth** object|
+|_connectionMethod | "native".<br>Intended to be specified when instantiating the **auth** object, to help the library to decide which networking library to use, but not implemented for the others, yet. |
 |_endpoint|the base url for the API to use|
 |_request | The request made to the server - useful for debugging|
-|_spreadsheetId|The part of the URL after /spreadsheets/d/|
+|_result | Object containing the result of a rest call:<br>* *request* : concat of url and body<br>* *status* : numeric return code<br>* value : whatever the server returns |
+|_spreadsheetId|The part of the URL after */spreadsheets/d/*|
 
 
 

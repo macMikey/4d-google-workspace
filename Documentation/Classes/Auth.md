@@ -7,6 +7,8 @@
 
 * Manages the authorization and ongoing access with Google.
 
+Extra spaces added in the examples to make them easier to read.
+
 
 
 ## Constructor Parameters
