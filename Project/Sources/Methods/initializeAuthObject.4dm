@@ -3,7 +3,7 @@
 // define interprocess b/c otherwise the object won't survive between tests
 // could use a shared object, but i have not written the _auth object to be a singleton, yet, since it must be able to be modified when the token changes
 
-C_OBJECT:C1216(<>a)
+var <>a : Object
 If (OB Is empty:C1297(<>a))
 	$username:=getPrivateData("google-user.txt")
 	$key:=getPrivateData("google-key.json")

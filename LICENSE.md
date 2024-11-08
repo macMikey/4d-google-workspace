@@ -2,7 +2,7 @@
 
 MIT License
 
-Copyright (c) 2020-23 R. M. Kerner Co.
+Copyright (c) 2020-24 R. M. Kerner Co.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

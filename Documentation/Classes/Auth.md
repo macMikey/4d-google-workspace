@@ -119,3 +119,7 @@ url:		 url to call for the oauth2 request
 ## Reference
 
 https://developers.google.com/identity/protocols/oauth2
+
+https://developers.google.com/identity/protocols/oauth2/web-server
+
+https://developers.google.com/identity/protocols/oauth2/service-account

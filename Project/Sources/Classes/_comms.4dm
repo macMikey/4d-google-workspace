@@ -80,21 +80,18 @@ Function parseError()->$error : Text  //()
 	
 	
 	
-Function URL_Escape
+Function URL_Escape($string : Text; $charsToSkip : Variant)->$result : Text
 	// ripped from https://kb.4d.com/assetid=79062
-	var $2; $charsToSkip; $1; $0; $escaped : Text
+	var $escaped : Text
 	var $i : Integer
 	var $shouldEscape : Boolean
 	var $data : Blob
 	
-	$charsToSkip:=""
-	If (Count parameters:C259>=2)
-		$charsToSkip:=$2
-	End if 
+	$charsToSkip:=$charsToSkip || ""
 	
 	For ($i; 1; Length:C16($1))
 		
-		$char:=Substring:C12($1; $i; 1)
+		$char:=Substring:C12($string; $i; 1)
 		$code:=Character code:C91($char)
 		
 		$shouldEscape:=False:C215
@@ -124,6 +121,6 @@ Function URL_Escape
 		
 	End for 
 	
-	$0:=$escaped
+	$result:=$escaped
 	// _______________________________________________________________________________________________________________
 	

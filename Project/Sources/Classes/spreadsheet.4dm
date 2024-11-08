@@ -428,14 +428,16 @@ Function setValues($range : Text; $valuesObject : Object; $valueInputOption : Te
 	
 	
 	
-Function _http($http_method : Text; $url : Text; $body : Text)->$oResult : Object
+Function _http($http_method : Text; $url : Text; $body : Text; $header : Variant)->$oResult : Object
 	// returns an object with properties  status:TEXT ; value:TEXT
 	//tries the _comms._http.  If it fails, it checks to see if that is because the token expired, and if so, tries again.
+	
+	$header:=$header || $header
 	
 	$oResult:=Super:C1706.http($http_method; $url; $body; This:C1470._auth.getHeader())
 	If (OB Is defined:C1231($oResult.value; "error"))  // error occurred"// this chokes on the "values.error" If (OB Is defined($oResult;"value.error"))  // error occurred"
 		If (($oResult.value.error.code=401) & ($oResult.value.error.status="UNAUTHENTICATED"))  //token expired, try again with a forced refresh on the token
-			$oResult:=Super:C1706.http($http_method; $url; $body; This:C1470._auth.getHeader())
+			$oResult:=Super:C1706.http($http_method; $url; $body; $header)
 		End if   //($oResult.value.error.code=401) & ($oResult.value.error.status="UNAUTHENTICATED")
 	End if   //(ob is defined($oResult.value.error))
 	This:C1470._result:=$oResult
@@ -478,15 +480,13 @@ Function _getSheetIdFromURL  //url:text
 	
 	
 	
-Function _getSSIdFromURL  //url:text
+Function _getSSIdFromURL($url : Text) : Text
 	// accepts a url and extracts the Id of the sheet from that
-	var $1 : Text
-	
-	$found:=Match regex:C1019("(?<=/spreadsheets/d/)([a-zA-Z0-9-_]+)"; $1; 1; $foundAt; $length)
+	$found:=Match regex:C1019("(?<=/spreadsheets/d/)([a-zA-Z0-9-_]+)"; $url; 1; $foundAt; $length)
 	If (Not:C34($found))
-		$0:=""
+		return ""
 	Else 
-		$0:=Substring:C12($1; $foundAt; $length)
+		return Substring:C12($1; $foundAt; $length)
 	End if   //(not($found))
 	// _______________________________________________________________________________________________________________
 	
@@ -505,31 +505,31 @@ Function _loadIfNotLoaded  //   ( )  -> sheetWasNotLoaded :boolean
 	
 	
 	
-Function _queryRange  //(rangeString:text)
+Function _queryRange($rangeString : Text)->$queryRange : Text
 	//turns a range string into a query-capable string
 	// 1. replaces colons with %3A
 	// 2. quotes all sheet names
 	// 3. handles comma-separated compound ranges
-	var $1; $0; $sheetPart; $cellsPart : Text
+	var $sheetPart; $cellsPart : Text
 	var $bangPos : Integer
-	$0:=""
-	If ($1#"")
-		$0:=$1
+	$queryRange:=""
+	If ($rangeString#"")
+		$queryRange:=$rangeString
 		//debugy when setting ranges, this breaks the range string comparison google does.  $0:=Replace string($0;":";"%3A")  //url encode
-		$0:=Replace string:C233($0; ","; "&ranges=")  // A1:B1,C1 becomes ranges=A1:B1&ranges=C1
+		$queryRange:=Replace string:C233($queryRange; ","; "&ranges=")  // A1:B1,C1 becomes ranges=A1:B1&ranges=C1
 		//<quote the sheet name so names with spaces will be ok>
 		$bang:="!"  // for searching and then for appending, later, if it's actually in the string
-		$bangPos:=Position:C15($bang; $0)
+		$bangPos:=Position:C15($bang; $queryRange)
 		If ($bangPos=0)
 			$bang:=""  // not in the string, so don't append it, later
-			$bangPos:=Length:C16($0)+1
+			$bangPos:=Length:C16($queryRange)+1
 		End if   //$bangPos=0
-		$sheetPart:=Substring:C12($0; 1; ($bangPos-1))  // beginning until just before the bang
-		$cellsPart:=Substring:C12($0; ($bangPos+1); Length:C16($0))
+		$sheetPart:=Substring:C12($queryRange; 1; ($bangPos-1))  // beginning until just before the bang
+		$cellsPart:=Substring:C12($queryRange; ($bangPos+1); Length:C16($queryRange))
 		If (($sheetPart[[1]]#"'") & ($sheetPart[[Length:C16($sheetPart)]]#"'"))  // sheet name isn't already quoted
 			$sheetPart:="'"+Super:C1706.URL_Escape($sheetPart)+"'"  // surround the sheet name with single quotes so we don't have to worry about spaces
 		End if 
-		$0:=$sheetPart+$bang+$cellsPart  // put it back together
+		$queryRange:=$sheetPart+$bang+$cellsPart  // put it back together
 		//</quote the sheet name so names with spaces will be ok>
 	End if 
 	// _______________________________________________________________________________________________________________

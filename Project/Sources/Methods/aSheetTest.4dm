@@ -5,7 +5,7 @@ $testURL:=getPrivateData("testsheet.txt")
 
 
 //<setup a spreadsheet>
-C_OBJECT:C1216($s)
+var $s : Object
 $s:=Null:C1517
 $s:=cs:C1710.spreadsheet.new(<>a; $testURL)
 //</setup a spreadsheet>
@@ -13,7 +13,7 @@ $s:=cs:C1710.spreadsheet.new(<>a; $testURL)
 
 
 //<EXAMPLE: get sheet names>
-C_COLLECTION:C1488($sheetNames)
+var $sheetNames : Collection
 $sheetNames:=$s.getSheetNames()
 If ($sheetNames=Null:C1517)
 	ALERT:C41("getSheetNames("+$range+")\r"+$s.parseError())
@@ -24,7 +24,7 @@ End if
 
 
 //<EXAMPLE: Replace Cell Values>
-C_OBJECT:C1216($values)
+var $values : Object
 $values:=$s.getValues("Sheet1")
 If ($values=Null:C1517)
 	ALERT:C41("getValues("+$range+")\r"+$s.parseError())
@@ -40,7 +40,7 @@ For ($i; 0; ($values.values.length-1))
 	End for 
 End for 
 
-C_OBJECT:C1216($result)
+var $result : Object
 $result:=$s.setValues($s.sheetData.range; $values; "USER_ENTERED")  // fun fact: can get the full range of the sheet from the sheetData.range property
 If ($result=Null:C1517)
 	ALERT:C41("setValues("+$range+")\r"+$s.parseError())

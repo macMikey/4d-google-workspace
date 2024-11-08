@@ -77,8 +77,14 @@
 		},
 		"_jwt": {
 			"new()": {
-				"Syntax": "**.new**()",
-				"Params": [],
+				"Syntax": "**.new**( *settings* : Object )",
+				"Params": [
+					[
+						"settings",
+						"Object",
+						"->"
+					]
+				],
 				"Summary": ""
 			}
 		},
@@ -107,8 +113,24 @@
 		},
 		"calendar": {
 			"new()": {
-				"Syntax": "**.new**()",
-				"Params": [],
+				"Syntax": "**.new**( *oGoogleAuth* : Object; *apiKey* : Text; *calendar_url* : Variant )",
+				"Params": [
+					[
+						"oGoogleAuth",
+						"Object",
+						"->"
+					],
+					[
+						"apiKey",
+						"Text",
+						"->"
+					],
+					[
+						"calendar_url",
+						"Variant",
+						"->"
+					]
+				],
 				"Summary": ""
 			}
 		},
@@ -441,18 +463,76 @@
 	},
 	"_jwt": {
 		"HMAC()": {
-			"Syntax": "**.HMAC**()",
-			"Params": [],
+			"Syntax": "**.HMAC**( *key* : Variant; *message* : Variant; *algoName* : Text )->hexa : Text",
+			"Params": [
+				[
+					"key",
+					"Variant",
+					"->"
+				],
+				[
+					"message",
+					"Variant",
+					"->"
+				],
+				[
+					"algoName",
+					"Text",
+					"->"
+				],
+				[
+					"hexa",
+					"Text",
+					"<-"
+				]
+			],
 			"Summary": ""
 		},
 		"verify()": {
-			"Syntax": "**.verify**()",
-			"Params": [],
+			"Syntax": "**.verify**( *token* : Text; *options* : Object )->result : Object",
+			"Params": [
+				[
+					"token",
+					"Text",
+					"->"
+				],
+				[
+					"options",
+					"Object",
+					"->"
+				],
+				[
+					"result",
+					"Object",
+					"<-"
+				]
+			],
 			"Summary": ""
 		},
 		"sign()": {
-			"Syntax": "**.sign**()",
-			"Params": [],
+			"Syntax": "**.sign**( *headerO* : Object; *payloadO* : Object; *optionsO* : Object )->token : Text",
+			"Params": [
+				[
+					"headerO",
+					"Object",
+					"->"
+				],
+				[
+					"payloadO",
+					"Object",
+					"->"
+				],
+				[
+					"optionsO",
+					"Object",
+					"->"
+				],
+				[
+					"token",
+					"Text",
+					"<-"
+				]
+			],
 			"Summary": ""
 		}
 	},
@@ -521,38 +601,105 @@
 	},
 	"calendar": {
 		"eventsList()": {
-			"Syntax": "**.eventsList**()",
-			"Params": [],
+			"Syntax": "**.eventsList**() : Object",
+			"Params": [
+				[
+					"",
+					"Object",
+					"<-"
+				]
+			],
 			"Summary": ""
 		},
 		"eventsInsert()": {
-			"Syntax": "**.eventsInsert**()",
-			"Params": [],
+			"Syntax": "**.eventsInsert**( *eventObject* : Variant ) : Variant",
+			"Params": [
+				[
+					"eventObject",
+					"Variant",
+					"->"
+				],
+				[
+					"",
+					"Variant",
+					"<-"
+				]
+			],
 			"Summary": ""
 		},
 		"setID()": {
-			"Syntax": "**.setID**()",
-			"Params": [],
+			"Syntax": "**.setID**( *id* : Text ) : Boolean",
+			"Params": [
+				[
+					"id",
+					"Text",
+					"->"
+				],
+				[
+					"",
+					"Boolean",
+					"<-"
+				]
+			],
 			"Summary": ""
 		},
 		"getCalendarList()": {
-			"Syntax": "**.getCalendarList**()",
-			"Params": [],
+			"Syntax": "**.getCalendarList**() : Variant",
+			"Params": [
+				[
+					"",
+					"Variant",
+					"<-"
+				]
+			],
 			"Summary": ""
 		},
 		"eventDelete()": {
-			"Syntax": "**.eventDelete**()",
-			"Params": [],
+			"Syntax": "**.eventDelete**( *eventID* : Text ) : Boolean",
+			"Params": [
+				[
+					"eventID",
+					"Text",
+					"->"
+				],
+				[
+					"",
+					"Boolean",
+					"<-"
+				]
+			],
 			"Summary": ""
 		},
 		"eventsGet()": {
-			"Syntax": "**.eventsGet**()",
-			"Params": [],
+			"Syntax": "**.eventsGet**( *eventID* : Text ) : Object",
+			"Params": [
+				[
+					"eventID",
+					"Text",
+					"->"
+				],
+				[
+					"",
+					"Object",
+					"<-"
+				]
+			],
 			"Summary": ""
 		},
 		"createCalendar()": {
-			"Syntax": "**.createCalendar**()",
-			"Params": [],
+			"Syntax": "**.createCalendar**( *name* : Text ) : Boolean",
+			"Params": [
+				[
+					"name",
+					"Text",
+					"->"
+				],
+				[
+					"",
+					"Boolean",
+					"<-"
+				]
+			],
 			"Summary": ""
 		},
 		"_inheritedFrom_": "_comms"
@@ -570,8 +717,24 @@
 			"Summary": ""
 		},
 		"URL_Escape()": {
-			"Syntax": "**.URL_Escape**()",
-			"Params": [],
+			"Syntax": "**.URL_Escape**( *string* : Text; *charsToSkip* : Variant )->result : Text",
+			"Params": [
+				[
+					"string",
+					"Text",
+					"->"
+				],
+				[
+					"charsToSkip",
+					"Variant",
+					"->"
+				],
+				[
+					"result",
+					"Text",
+					"<-"
+				]
+			],
 			"Summary": ""
 		},
 		"http()": {
