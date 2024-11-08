@@ -1,11 +1,11 @@
 Class extends _comms
 
-Class constructor($oGoogleAuth : Object; $apiKey : Text; $calendar_url : Variant)
+Class constructor($oGoogleAuth : Object; /*$apiKey : Text;*/$calendar_url : Variant)
 	
 	Super:C1705("native")  //_comms type
 	This:C1470._auth:=$oGoogleAuth
 	
-	This:C1470._apiKey:=$apiKey
+	//This._apiKey:=$apiKey
 	
 	This:C1470.endpoint:="https://www.googleapis.com/calendar/v3/"  // need to do this before call this.setID
 	
@@ -260,7 +260,7 @@ Function _http($http_method : Text; $url : Text; $body : Text; $header : Object)
 	Else   // doesn't contain "?"
 		$connector:="?"
 	End if 
-	$url:=$url+$connector+"key="+This:C1470._apiKey
+	//$url:=$url+$connector+"key="+This._apiKey
 	$oResult:=Super:C1706.http($http_method; $url; $body; $header)
 	If (OB Is defined:C1231($oResult; "value.error"))  // error occurred
 		If (($oResult.value.error.code=401) & ($oResult.value.error.status="UNAUTHENTICATED"))  //token expired, try again with a forced refresh on the token
