@@ -67,10 +67,17 @@ Function http($httpMethod : Text; $url : Text; $body : Text; $header : Variant)-
 Function parseError()->$error : Text  //()
 	// parses an error object and returns the contents
 	var $oError : Object
-	$oError:=This:C1470._result.error
+	If (Undefined:C82(This:C1470._result.error))
+		$oError:=This:C1470._result.value.error
+		$request:=This:C1470._result.request
+	Else 
+		$oError:=This:C1470._result.error
+		$request:=This:C1470._request
+	End if 
+	
 	$error:=""
 	If ($oError#Null:C1517)
-		$error:="Request: "+This:C1470._request+"\r"+\
+		$error:="Request: "+$request+"\r"+\
 			"Code: "+String:C10($oError.code)+"\r"+\
 			"Status: "+$oError.status+"\r"+\
 			"Message: "+$oError.message

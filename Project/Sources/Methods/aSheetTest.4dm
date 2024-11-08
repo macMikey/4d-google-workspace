@@ -16,7 +16,7 @@ $s:=cs:C1710.spreadsheet.new(<>a; $testURL)
 var $sheetNames : Collection
 $sheetNames:=$s.getSheetNames()
 If ($sheetNames=Null:C1517)
-	ALERT:C41("getSheetNames("+$range+")\r"+$s.parseError())
+	ALERT:C41("getSheetNames error:\r"+$s.parseError())
 	ABORT:C156
 End if 
 //</EXAMPLE: get sheet names>
