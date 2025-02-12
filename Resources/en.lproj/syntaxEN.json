@@ -113,16 +113,11 @@
 		},
 		"calendar": {
 			"new()": {
-				"Syntax": "**.new**( *oGoogleAuth* : Object; *apiKey* : Text; *calendar_url* : Variant )",
+				"Syntax": "**.new**( *oGoogleAuth* : Object; *calendar_url* : Variant )",
 				"Params": [
 					[
 						"oGoogleAuth",
 						"Object",
-						"->"
-					],
-					[
-						"apiKey",
-						"Text",
 						"->"
 					],
 					[
