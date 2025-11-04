@@ -178,13 +178,15 @@ the request body is
 	
 	$oResult:=This:C1470._http(HTTP POST method:K71:2; $url; JSON Stringify:C1217($batchUpdate))
 	This:C1470._result.status:=$oResult.status
-	return New object:C1471("result"; $oResult)
-	
-	If (This:C1470._result.status=200)
-		return New object:C1471("success"; True:C214)
-	Else   //$status#200
-		return New object:C1471("success"; False:C215)
-	End if   //status=200
+	$oReturn:=New object:C1471("result"; $oResult)
+	$oReturn.success:=This:C1470._result.status=200
+/*
+If (This._result.status=200)
+return New object("success"; True)
+Else   //$status#200
+return New object("success"; False)
+End if   //status=200
+*/
 	// _______________________________________________________________________________________________________________
 	
 	
